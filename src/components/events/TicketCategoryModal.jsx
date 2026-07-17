@@ -3,6 +3,7 @@ import { Calendar, X, Clock, ChevronDown, Search } from "lucide-react";
 import useNotification from "../../hooks/useNotification";
 import useClickOutside from "../../hooks/useClickOutside";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import Button from "../common/Button";
 import {
   PREDEFINED_TICKET_CATEGORIES as predefinedCategories,
   TIME_OPTIONS as timeOptions,
@@ -281,7 +282,7 @@ export default function TicketCategoryModal({
               >
                 {editingTicket ? "Edit Kategori Tiket" : "Tambah Kategori Tiket"}
               </Motion.h2>
-              <Motion.button
+              <Button unstyled
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.1, rotate: 90 }}
@@ -290,7 +291,7 @@ export default function TicketCategoryModal({
                 className="text-gray-500 hover:text-gray-700 p-1 rounded-full transition-colors"
               >
                 <X size={24} />
-              </Motion.button>
+              </Button>
             </div>
             {eventDates?.start && eventDates?.end && (
               <Motion.p
@@ -335,13 +336,13 @@ export default function TicketCategoryModal({
                     onFocus={handleSearchFocus}
                     required
                   />
-                  <button
+                  <Button unstyled
                     type="button"
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="p-1 hover:bg-gray-100 rounded transition-colors"
                   >
                     <ChevronDown size={18} className="text-gray-400" />
-                  </button>
+                  </Button>
                 </div>
 
                 <AnimatePresence>
@@ -544,23 +545,26 @@ export default function TicketCategoryModal({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Motion.button
+              <Button
                 type="button"
                 onClick={onClose}
-                className="ui-button ui-button-secondary flex-1 px-6 py-3"
+                variant="secondary"
+                size="lg"
+                className="flex-1"
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98 }}
               >
                 Batal
-              </Motion.button>
-              <Motion.button
+              </Button>
+              <Button
                 type="submit"
-                className="ui-button ui-button-primary flex-1 px-6 py-3"
+                size="lg"
+                className="flex-1"
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98 }}
               >
                 {editingTicket ? "Update Kategori Tiket" : "Tambah Kategori Tiket"}
-              </Motion.button>
+              </Button>
             </Motion.div>
           </Motion.form>
         </Motion.div>

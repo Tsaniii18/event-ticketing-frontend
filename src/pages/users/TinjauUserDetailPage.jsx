@@ -13,6 +13,7 @@ import {
   User, Mail, Building, MapPin, FileText,
   Shield, ArrowLeft, CheckCircle, XCircle, Clock
 } from "lucide-react";
+import Button from "../../components/common/Button";
 
 export default function TinjauUserDetailPage() {
   const { id } = useParams();
@@ -129,7 +130,7 @@ export default function TinjauUserDetailPage() {
                   <h1 className="text-2xl md:text-3xl font-bold">Tinjau Pengguna Organizer</h1>
                   <p className="text-brand-100 mt-1">Verifikasi dan tinjau data pengguna organizer</p>
                 </div>
-                <Motion.button
+                <Button unstyled
                   onClick={() => navigate("/verifikasiUser")}
                   className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all font-medium backdrop-blur-sm"
                   whileHover={{ scale: 1.05, y: -1 }}
@@ -137,7 +138,7 @@ export default function TinjauUserDetailPage() {
                 >
                   <ArrowLeft size={18} />
                   Kembali
-                </Motion.button>
+                </Button>
               </div>
             </div>
 
@@ -358,19 +359,19 @@ export default function TinjauUserDetailPage() {
                   variants={itemVariants}
                   className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200"
                 >
-                  <Motion.button
+                  <Button
                     onClick={() => navigate("/verifikasiUser")}
-                    className="ui-button ui-button-muted px-6 py-3"
+                    variant="muted" className="px-6 py-3"
                     disabled={submitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <ArrowLeft size={18} />
                     Kembali
-                  </Motion.button>
-                  <Motion.button
+                  </Button>
+                  <Button
                     onClick={() => handleVerify("rejected")}
-                    className="ui-button ui-button-danger px-6 py-3"
+                    variant="danger" className="px-6 py-3"
                     disabled={submitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -386,10 +387,10 @@ export default function TinjauUserDetailPage() {
                         Tolak
                       </>
                     )}
-                  </Motion.button>
-                  <Motion.button
+                  </Button>
+                  <Button
                     onClick={() => handleVerify("approved")}
-                    className="ui-button ui-button-success px-6 py-3"
+                    variant="success" className="px-6 py-3"
                     disabled={submitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -405,7 +406,7 @@ export default function TinjauUserDetailPage() {
                         Setujui
                       </>
                     )}
-                  </Motion.button>
+                  </Button>
                 </Motion.div>
               </Motion.div>
             ) : (
@@ -418,15 +419,15 @@ export default function TinjauUserDetailPage() {
                   <User size={48} className="mx-auto" />
                 </div>
                 <p className="text-gray-600 text-lg mb-4">Pengguna tidak ditemukan.</p>
-                <Motion.button
+                <Button
                   onClick={() => navigate("/verifikasiUser")}
-                  className="ui-button ui-button-primary mx-auto px-6 py-3"
+                  variant="primary" className="mx-auto px-6 py-3"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <ArrowLeft size={18} />
                   Kembali ke Daftar Verifikasi
-                </Motion.button>
+                </Button>
               </Motion.div>
             )}
           </Motion.div>

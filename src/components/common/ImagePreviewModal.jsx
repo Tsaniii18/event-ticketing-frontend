@@ -1,6 +1,7 @@
 import { X, ZoomIn, ZoomOut } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import Button from "./Button";
 
 export default function ImagePreviewModal({
   isOpen,
@@ -50,7 +51,7 @@ export default function ImagePreviewModal({
           className="ui-modal-backdrop items-center bg-black/90 p-2 backdrop-blur-sm sm:p-4"
           onClick={handleBackdropClick}
         >
-          <Motion.button
+          <Button unstyled
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -59,7 +60,7 @@ export default function ImagePreviewModal({
             className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 sm:p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
           >
             <X size={20} className="sm:w-6 sm:h-6" />
-          </Motion.button>
+          </Button>
 
           <Motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -68,23 +69,23 @@ export default function ImagePreviewModal({
             transition={{ duration: 0.2, delay: 0.1 }}
             className="hidden sm:flex absolute bottom-6 left-1/2 -translate-x-1/2 items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 z-10"
           >
-            <button
+            <Button unstyled
               onClick={handleZoomOut}
               disabled={scale <= 0.5}
               className="p-2 hover:bg-white/20 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ZoomOut size={20} />
-            </button>
+            </Button>
             <span className="text-white text-sm font-medium min-w-15 text-center">
               {Math.round(scale * 100)}%
             </span>
-            <button
+            <Button unstyled
               onClick={handleZoomIn}
               disabled={scale >= 3}
               className="p-2 hover:bg-white/20 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ZoomIn size={20} />
-            </button>
+            </Button>
           </Motion.div>
 
           <Motion.div

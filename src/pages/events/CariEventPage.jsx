@@ -17,6 +17,7 @@ import {
 } from "../../utils";
 import { Search, Filter, Calendar, MapPin, X, RefreshCw, Heart, ChevronLeft, ChevronRight, ShoppingBag, Clock, ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import Button from "../../components/common/Button";
 
 export default function CariEvent() {
   const navigate = useNavigate();
@@ -292,23 +293,23 @@ export default function CariEvent() {
 
                 <div className="flex items-center gap-2 sm:gap-3">
                   {hasActiveFilters && (
-                    <button
+                    <Button unstyled
                       onClick={clearFilters}
                       className="flex items-center gap-1.5 text-xs sm:text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1.5"
                     >
                       <X size={14} />
                       <span className="hidden xs:inline">Hapus Filter</span>
                       <span className="xs:hidden">Reset</span>
-                    </button>
+                    </Button>
                   )}
 
-                  <button
+                  <Button
                     onClick={handleRefresh}
-                    className="ui-button ui-button-primary px-3 py-2 sm:rounded-xl sm:px-4 sm:py-2.5"
+                    variant="primary" className="px-3 py-2 sm:rounded-xl sm:px-4 sm:py-2.5"
                   >
                     <RefreshCw size={16} />
                     <span className="hidden sm:inline">Refresh</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -316,7 +317,7 @@ export default function CariEvent() {
             <p className="text-xs sm:text-sm text-gray-600 mb-2">Filter berdasarkan status event:</p>
 
             <div className="flex gap-2 mb-3 sm:mb-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible scrollbar-hide">
-              <button
+              <Button unstyled
                 onClick={() => handleStatusFilterChange("")}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                   statusFilter === ''
@@ -325,8 +326,8 @@ export default function CariEvent() {
                 }`}
               >
                 Semua
-              </button>
-              <button
+              </Button>
+              <Button unstyled
                 onClick={() => handleStatusFilterChange("approved")}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                   statusFilter === 'approved'
@@ -336,8 +337,8 @@ export default function CariEvent() {
               >
                 <Clock size={16} />
                 Segera Hadir
-              </button>
-              <button
+              </Button>
+              <Button unstyled
                 onClick={() => handleStatusFilterChange("active")}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                   statusFilter === 'active'
@@ -347,8 +348,8 @@ export default function CariEvent() {
               >
                 <CheckCircle size={16} />
                 Sedang Berlangsung
-              </button>
-              <button
+              </Button>
+              <Button unstyled
                 onClick={() => handleStatusFilterChange("ended")}
                 disabled={isEndedFilterDisabled}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
@@ -361,13 +362,13 @@ export default function CariEvent() {
               >
                 <XCircle size={16} />
                 Berakhir
-              </button>
+              </Button>
             </div>
 
             <p className="text-xs sm:text-sm text-gray-600 mb-2">Urutkan berdasar:</p>
 
             <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible scrollbar-hide">
-              <button
+              <Button unstyled
                 onClick={() => handleSortChange('popularitas')}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                   sortBy === 'popularitas'
@@ -377,8 +378,8 @@ export default function CariEvent() {
               >
                 <Heart size={16} className={sortBy === 'popularitas' ? 'fill-current' : ''} />
                 Popularitas
-              </button>
-              <button
+              </Button>
+              <Button unstyled
                 onClick={() => handleSortChange('terlaris')}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                   sortBy === 'terlaris'
@@ -388,8 +389,8 @@ export default function CariEvent() {
               >
                 <ShoppingBag size={16} />
                 Terlaris
-              </button>
-              <button
+              </Button>
+              <Button unstyled
                 onClick={() => handleSortChange('terdekat')}
                 disabled={statusFilter === "ended"}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
@@ -402,21 +403,21 @@ export default function CariEvent() {
               >
                 <Clock size={16} />
                 Waktu Terdekat
-              </button>
+              </Button>
             </div>
 
             <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
               <div className="flex justify-between items-center gap-3 mb-4">
                 <h3 className="text-base sm:text-xl font-semibold text-gray-800">Filter & Pencarian</h3>
 
-                <button
+                <Button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="ui-button ui-button-secondary px-3 py-2 sm:px-4 sm:py-2.5"
+                  variant="secondary" className="px-3 py-2 sm:px-4 sm:py-2.5"
                 >
                   <Filter size={16} />
                   <span className="hidden sm:inline">{showFilters ? "Sembunyikan" : "Tampilkan"}</span>
                   <span className="sm:hidden">{showFilters ? "Tutup" : "Filter"}</span>
-                </button>
+                </Button>
               </div>
 
               <AnimatePresence>
@@ -516,12 +517,12 @@ export default function CariEvent() {
                   </div>
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">Tidak ada event ditemukan</h3>
                   <p className="text-sm sm:text-base text-gray-600 mb-4">Coba ubah filter atau kata kunci pencarian Anda</p>
-                  <button
+                  <Button
                     onClick={clearFilters}
-                    className="ui-button ui-button-primary px-4 py-2 sm:px-6 sm:text-base"
+                    variant="primary" className="px-4 py-2 sm:px-6 sm:text-base"
                   >
                     Reset Filter
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -564,7 +565,7 @@ export default function CariEvent() {
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
-                      <button
+                      <Button unstyled
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
                         className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
@@ -575,14 +576,14 @@ export default function CariEvent() {
                       >
                         <ChevronLeft size={16} />
                         <span className="hidden sm:inline">Prev</span>
-                      </button>
+                      </Button>
 
                       <div className="flex items-center gap-1">
                         {getPageNumbers().map((page, idx) => (
                           page === '...' ? (
                             <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-gray-400 text-sm">...</span>
                           ) : (
-                            <button
+                            <Button unstyled
                               key={page}
                               onClick={() => handlePageChange(page)}
                               className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium transition-colors text-sm ${
@@ -592,12 +593,12 @@ export default function CariEvent() {
                               }`}
                             >
                               {page}
-                            </button>
+                            </Button>
                           )
                         ))}
                       </div>
 
-                      <button
+                      <Button unstyled
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
                         className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
@@ -608,7 +609,7 @@ export default function CariEvent() {
                       >
                         <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={16} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -658,7 +659,7 @@ function EventCard({
           </span>
         </div>
 
-        <button
+        <Button unstyled
           onClick={onLike}
           disabled={!canLike}
           className={`absolute top-2 sm:top-3 right-2 sm:right-3 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${
@@ -670,7 +671,7 @@ function EventCard({
           }`}
         >
           <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked ? 'fill-current' : ''}`} />
-        </button>
+        </Button>
 
         {showTimeLabel && (
           <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3">

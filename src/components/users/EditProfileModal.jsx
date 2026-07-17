@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { userAPI } from "../../services";
 import useNotification from "../../hooks/useNotification";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import Button from "../common/Button";
 import { X, Camera, User, Mail, Lock, Building, MapPin, FileText, Eye, EyeOff } from "lucide-react";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
@@ -141,7 +142,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
               >
                 Edit Profil
               </Motion.h3>
-              <Motion.button
+              <Button unstyled
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.1, rotate: 90 }}
@@ -150,7 +151,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
                 className="ui-icon-button size-8 rounded-full"
               >
                 <X size={20} />
-              </Motion.button>
+              </Button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -183,7 +184,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
                         )}
                       </div>
                       {(previewImages.profile_pict || user.profile_pict) && (
-                        <Motion.button
+                        <Button unstyled
                           type="button"
                           onClick={() => clearFile('profile_pict')}
                           className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-danger-500 text-xs text-white shadow-md hover:bg-danger-600"
@@ -191,7 +192,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
                           whileTap={{ scale: 0.9 }}
                         >
                           ×
-                        </Motion.button>
+                        </Button>
                       )}
                     </div>
 
@@ -284,13 +285,13 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
                     className="ui-input pr-10"
                     placeholder="Masukkan password baru"
                   />
-                  <button
+                  <Button unstyled
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                  </Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah</p>
               </Motion.div>
@@ -391,31 +392,28 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
                 transition={{ delay: 0.7 }}
                 className="flex gap-3 pt-4"
               >
-                <Motion.button
+                <Button
                   type="button"
                   onClick={handleClose}
-                  className="ui-button ui-button-secondary flex-1 px-4 py-3"
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Batal
-                </Motion.button>
-                <Motion.button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={loading}
-                  className="ui-button ui-button-primary flex-1 bg-linear-to-r from-brand-600 to-brand-700 px-4 py-3 hover:from-brand-700 hover:to-brand-800"
+                  loading={loading}
+                  loadingLabel="Menyimpan..."
+                  size="lg"
+                  className="flex-1 bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800"
                   whileHover={{ scale: loading ? 1 : 1.02, y: loading ? 0 : -1 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Menyimpan...
-                    </div>
-                  ) : (
-                    "Simpan Perubahan"
-                  )}
-                </Motion.button>
+                  Simpan Perubahan
+                </Button>
               </Motion.div>
             </form>
           </div>

@@ -22,6 +22,7 @@ import {
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -617,7 +618,7 @@ export default function EditEventPage() {
               className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
             >
               <div className="flex items-center gap-4">
-                <Motion.button
+                <Button unstyled
                   onClick={() => navigate(`/detailEvent/${id}`)}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors p-2 rounded-lg hover:bg-gray-100"
                   whileHover={{ scale: 1.05, x: -2 }}
@@ -625,7 +626,7 @@ export default function EditEventPage() {
                 >
                   <ArrowLeft size={20} />
                   <span className="font-medium">Kembali</span>
-                </Motion.button>
+                </Button>
                 <div>
                   <h1 className="ui-heading-1">Edit Event</h1>
                   <p className="text-gray-600 mt-2">Perbarui informasi event Anda</p>
@@ -791,14 +792,14 @@ export default function EditEventPage() {
                       </label>
                     </div>
                     {(posterFile || currentPoster) && (
-                      <button
+                      <Button unstyled
                         type="button"
                         onClick={() => handlePreviewImage('poster')}
                         className="flex items-center gap-2 text-brand-600 hover:text-brand-800 text-sm"
                       >
                         <Eye size={16} />
                         Lihat Preview
-                      </button>
+                      </Button>
                     )}
                   </div>
 
@@ -821,14 +822,14 @@ export default function EditEventPage() {
                       </label>
                     </div>
                     {(bannerFile || currentBanner) && (
-                      <button
+                      <Button unstyled
                         type="button"
                         onClick={() => handlePreviewImage('banner')}
                         className="flex items-center gap-2 text-brand-600 hover:text-brand-800 text-sm"
                       >
                         <Eye size={16} />
                         Lihat Preview
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -914,16 +915,16 @@ export default function EditEventPage() {
               <Motion.div variants={itemVariants} className="ui-subtle-panel p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="ui-heading-2">Kategori Tiket</h2>
-                  <Motion.button
+                  <Button
                     type="button"
                     onClick={handleAddTicketClick}
-                    className="ui-button ui-button-primary px-5"
+                    variant="primary" className="px-5"
                     whileHover={{ scale: 1.05, y: -1 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <Plus size={20} />
                     Tambah Kategori Tiket
-                  </Motion.button>
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
@@ -976,10 +977,11 @@ export default function EditEventPage() {
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2 sm:ml-4">
-                              <Motion.button
+                              <Button
                                 type="button"
                                 onClick={() => handleEditTicket(t)}
-                                className={`ui-button px-3 py-2 ${
+                                variant="custom"
+                                className={`px-3 py-2 ${
                                   needsAdjustment
                                     ? 'bg-warning-100 text-warning-700 hover:bg-warning-200'
                                     : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
@@ -989,17 +991,17 @@ export default function EditEventPage() {
                               >
                                 <Pencil size={16} />
                                 {needsAdjustment ? 'Sesuaikan' : 'Edit'}
-                              </Motion.button>
-                              <Motion.button
+                              </Button>
+                              <Button
                                 type="button"
                                 onClick={() => removeTicketCategory(t.id)}
-                                className="ui-button bg-danger-50 px-3 py-2 text-danger-700 hover:bg-danger-100"
+                                variant="soft" tone="danger" className="bg-danger-50 px-3 py-2 text-danger-700 hover:bg-danger-100"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                               >
                                 <Trash2 size={16} />
                                 Hapus
-                              </Motion.button>
+                              </Button>
                             </div>
                           </div>
                         </Motion.div>
@@ -1013,19 +1015,19 @@ export default function EditEventPage() {
                 variants={itemVariants}
                 className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200"
               >
-                <Motion.button
+                <Button
                   type="button"
                   onClick={() => navigate(`/event-saya`)}
-                  className="ui-button ui-button-secondary flex-1 px-6 py-3"
+                  variant="secondary" className="flex-1 px-6 py-3"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Batal
-                </Motion.button>
-                <Motion.button
+                </Button>
+                <Button
                   type="submit"
                   disabled={loading || ticketsNeedingAdjustment.length > 0}
-                  className="ui-button ui-button-primary flex-1 px-6 py-3"
+                  variant="primary" className="flex-1 px-6 py-3"
                   whileHover={{ scale: loading ? 1 : 1.02, y: loading ? 0 : -1 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -1040,7 +1042,7 @@ export default function EditEventPage() {
                   ) : (
                     "Simpan & Ajukan Kembali"
                   )}
-                </Motion.button>
+                </Button>
               </Motion.div>
             </Motion.form>
           </Motion.div>

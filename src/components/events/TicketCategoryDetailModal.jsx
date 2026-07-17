@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import Button from "../common/Button";
 
 export default function TicketCategoryDetailModal({
   isOpen,
@@ -36,12 +37,12 @@ export default function TicketCategoryDetailModal({
               <h3 className="text-base sm:text-xl font-bold text-gray-900 truncate pr-2">
                 Detail Tiket - {ticket.type}
               </h3>
-              <button
+              <Button unstyled
                 onClick={onClose}
                 className="ui-icon-button size-8 shrink-0 sm:size-10"
               >
                 <X size={18} className="sm:w-5 sm:h-5" />
-              </button>
+              </Button>
             </div>
 
             <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">

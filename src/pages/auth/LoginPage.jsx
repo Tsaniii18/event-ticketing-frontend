@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { motion as Motion } from "framer-motion";
 import { Mail, Lock, Shield, ArrowRight, Eye, EyeOff } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
+import Button from "../../components/common/Button";
 import { authAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
@@ -127,36 +128,29 @@ export default function LoginPage() {
                       placeholder="Masukkan Password"
                       required
                     />
-                    <button
+                    <Button unstyled
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
+                    </Button>
                   </div>
                 </Motion.div>
 
                 <Motion.div variants={itemVariants} className="pt-4">
-                  <Motion.button
+                  <Button
                     type="submit"
-                    disabled={loading}
-                    className="ui-button ui-button-primary w-full rounded-xl py-3 font-semibold shadow-lg"
+                    loading={loading}
+                    loadingLabel="Memproses..."
+                    size="lg"
+                    fullWidth
                     whileHover={{ scale: loading ? 1 : 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        Masuk
-                        <ArrowRight size={18} />
-                      </>
-                    )}
-                  </Motion.button>
+                    Masuk
+                    <ArrowRight size={18} />
+                  </Button>
                 </Motion.div>
               </form>
 

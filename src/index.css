@@ -153,31 +153,79 @@
   }
 
   .ui-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:translate-y-px disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+  }
+
+  .ui-button-sm {
+    @apply min-h-9 px-3 py-2 text-xs;
+  }
+
+  .ui-button-md {
+    @apply min-h-10 px-4 py-2.5;
+  }
+
+  .ui-button-lg {
+    @apply min-h-12 px-6 py-3 text-base;
+  }
+
+  .ui-button-icon {
+    @apply size-10 p-0;
   }
 
   .ui-button-primary {
-    @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+    @apply bg-brand-600 text-white shadow-brand-600/20 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md;
   }
 
   .ui-button-secondary {
-    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50;
+    @apply border-gray-300 bg-white text-gray-700 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md;
   }
 
   .ui-button-muted {
-    @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+    @apply bg-gray-100 text-gray-700 hover:-translate-y-0.5 hover:bg-gray-200 hover:shadow-md;
   }
 
   .ui-button-danger {
-    @apply bg-danger-600 text-white shadow-sm hover:bg-danger-700;
+    @apply bg-danger-600 text-white shadow-danger-600/20 hover:-translate-y-0.5 hover:bg-danger-700 hover:shadow-md;
   }
 
   .ui-button-success {
-    @apply bg-success-600 text-white shadow-sm hover:bg-success-700;
+    @apply bg-success-600 text-white shadow-success-600/20 hover:-translate-y-0.5 hover:bg-success-700 hover:shadow-md;
   }
 
   .ui-button-warning {
-    @apply bg-warning-500 text-white shadow-sm hover:bg-warning-600;
+    @apply bg-warning-500 text-white shadow-warning-500/20 hover:-translate-y-0.5 hover:bg-warning-600 hover:shadow-md;
+  }
+
+  .ui-button-ghost {
+    @apply border-transparent bg-transparent text-gray-600 shadow-none hover:bg-gray-100 hover:text-gray-900;
+  }
+
+  .ui-button-soft-brand {
+    @apply border-brand-100 bg-brand-50 text-brand-700 shadow-none hover:-translate-y-0.5 hover:border-brand-200 hover:bg-brand-100;
+  }
+
+  .ui-button-soft-success {
+    @apply border-success-100 bg-success-50 text-success-700 shadow-none hover:-translate-y-0.5 hover:border-success-200 hover:bg-success-100;
+  }
+
+  .ui-button-soft-warning {
+    @apply border-warning-100 bg-warning-50 text-warning-700 shadow-none hover:-translate-y-0.5 hover:border-warning-200 hover:bg-warning-100;
+  }
+
+  .ui-button-soft-danger {
+    @apply border-danger-100 bg-danger-50 text-danger-700 shadow-none hover:-translate-y-0.5 hover:border-danger-200 hover:bg-danger-100;
+  }
+
+  .ui-button-soft-purple {
+    @apply border-purple-100 bg-purple-50 text-purple-700 shadow-none hover:-translate-y-0.5 hover:border-purple-200 hover:bg-purple-100;
+  }
+
+  .ui-button-soft-neutral {
+    @apply border-gray-200 bg-gray-100 text-gray-700 shadow-none hover:-translate-y-0.5 hover:bg-gray-200;
+  }
+
+  .ui-button-spinner {
+    @apply size-4 animate-spin rounded-full border-2 border-current border-t-transparent;
   }
 
   .ui-icon-button {
@@ -269,6 +317,34 @@
   }
 
   .ui-table-shell {
-    @apply overflow-x-auto rounded-xl border border-gray-200 bg-white;
+    @apply overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  .ui-table {
+    @apply w-full border-separate border-spacing-0 text-sm;
+  }
+
+  .ui-table-header {
+    @apply bg-gray-50/90;
+  }
+
+  .ui-table-head {
+    @apply border-b border-gray-200 px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-gray-600 first:pl-5 last:pr-5;
+  }
+
+  .ui-table-body {
+    @apply divide-y divide-gray-100;
+  }
+
+  .ui-table-row {
+    @apply transition-colors duration-150 hover:bg-brand-50/40;
+  }
+
+  .ui-table-cell {
+    @apply px-4 py-4 align-middle text-gray-700 first:pl-5 last:pr-5;
+  }
+
+  .ui-table-footer {
+    @apply border-t border-gray-200 bg-gray-50 font-semibold;
   }
 }

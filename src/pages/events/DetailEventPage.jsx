@@ -41,6 +41,7 @@ import {
   CartSummary,
   TicketItem,
 } from "../../components/events/EventTicketSelection";
+import Button from "../../components/common/Button";
 
 const formatDescriptionWithNewlines = (text) => {
   if (!text) return "";
@@ -110,22 +111,22 @@ function AdminVerificationSection({ onVerify, verifying }) {
         Sebagai admin, Anda dapat menyetujui atau menolak event ini.
       </p>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <button
+        <Button
           onClick={() => onVerify("reject")}
           disabled={verifying}
-          className="ui-button ui-button-danger px-4 sm:px-6 sm:py-3 sm:text-base"
+          variant="danger" className="px-4 sm:px-6 sm:py-3 sm:text-base"
         >
           <XCircle size={18} />
           Tolak Event
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => onVerify("approve")}
           disabled={verifying}
-          className="ui-button ui-button-success px-4 sm:px-6 sm:py-3 sm:text-base"
+          variant="success" className="px-4 sm:px-6 sm:py-3 sm:text-base"
         >
           <CheckCircle size={18} />
           Setujui Event
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -227,16 +228,16 @@ function VerificationModal({
           transition={{ delay: 0.25 }}
           className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3"
         >
-          <Motion.button
+          <Button
             onClick={onClose}
-            className="ui-button ui-button-muted px-4 sm:text-base"
+            variant="muted" className="px-4 sm:text-base"
             disabled={verifying}
             whileHover={{ scale: verifying ? 1 : 1.02 }}
             whileTap={{ scale: verifying ? 1 : 0.98 }}
           >
             Batal
-          </Motion.button>
-          <Motion.button
+          </Button>
+          <Button unstyled
             onClick={onConfirm}
             className={`px-4 py-2.5 rounded-lg text-white transition-colors font-medium text-sm sm:text-base ${
               action === "approve"
@@ -275,7 +276,7 @@ function VerificationModal({
             ) : (
               "Tolak"
             )}
-          </Motion.button>
+          </Button>
         </Motion.div>
       </Motion.div>
     </Motion.div>
@@ -425,7 +426,7 @@ function ExpandableRules({ rules, maxLines = 5 }) {
       )}
 
       {needsExpand && (
-        <Motion.button
+        <Button unstyled
           onClick={() => setIsExpanded(!isExpanded)}
           className={`flex items-center gap-1.5 text-orange-600 hover:text-orange-700 font-medium text-sm sm:text-base transition-colors ${
             !isExpanded ? "relative -mt-2 sm:-mt-4" : "mt-3 sm:mt-4"
@@ -444,7 +445,7 @@ function ExpandableRules({ rules, maxLines = 5 }) {
               Lihat selengkapnya
             </>
           )}
-        </Motion.button>
+        </Button>
       )}
     </div>
   );
@@ -464,13 +465,13 @@ function LoginPrompt({ onLogin }) {
             Anda belum login. Untuk membeli tiket, silahkan login terlebih
             dahulu.
           </p>
-          <button
+          <Button
             onClick={onLogin}
-            className="ui-button ui-button-primary w-full bg-linear-to-r from-brand-600 to-brand-700 shadow-md hover:from-brand-700 hover:to-brand-800 hover:shadow-lg"
+            variant="primary" className="w-full bg-linear-to-r from-brand-600 to-brand-700 shadow-md hover:from-brand-700 hover:to-brand-800 hover:shadow-lg"
           >
             <LogIn size={16} />
             Login Sekarang
-          </button>
+          </Button>
         </div>
       </div>
     </Motion.div>
@@ -838,12 +839,12 @@ export default function EventDetail() {
             <p className="text-gray-600 mb-4 text-sm sm:text-base">
               {error || "Event tidak ditemukan"}
             </p>
-            <button
+            <Button
               onClick={() => navigate(-1)}
-              className="ui-button ui-button-primary px-4 py-2 sm:px-6 sm:py-3 sm:text-base"
+              variant="primary" className="px-4 py-2 sm:px-6 sm:py-3 sm:text-base"
             >
               Kembali
-            </button>
+            </Button>
           </div>
         </div>
         <NotificationModal
@@ -885,13 +886,13 @@ export default function EventDetail() {
       <div className="py-6 sm:py-8">
         <div className="ui-container-wide">
           <div className="mb-6">
-            <button
+            <Button unstyled
               onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-brand-600 hover:text-brand-800 font-medium transition-colors"
             >
               <ArrowLeft size={20} />
               Kembali
-            </button>
+            </Button>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -903,7 +904,7 @@ export default function EventDetail() {
                       {event.name}
                     </h1>
 
-                    <Motion.button
+                    <Button unstyled
                       onClick={handleLikeEvent}
                       disabled={likeLoading || !isRegularUser}
                       className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all shrink-0 ${
@@ -930,7 +931,7 @@ export default function EventDetail() {
                       <span className="font-semibold text-sm sm:text-base">
                         {formatNumber(totalLikes)}
                       </span>
-                    </Motion.button>
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
@@ -1102,12 +1103,12 @@ export default function EventDetail() {
                             Tiket untuk event ini belum tersedia
                           </p>
                           {isOwner && (
-                            <button
+                            <Button
                               onClick={() => navigate(`/edit-event/${id}`)}
-                              className="ui-button ui-button-primary px-6 shadow-lg hover:shadow-xl sm:px-8 sm:py-3 sm:text-base"
+                              variant="primary" className="px-6 shadow-lg hover:shadow-xl sm:px-8 sm:py-3 sm:text-base"
                             >
                               Tambah Tiket
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>

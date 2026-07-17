@@ -19,6 +19,7 @@ import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
 import { eventAPI } from "../../services";
 import { CATEGORIES, getCategoryColor, getParentCategory } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function LikedEventsPage() {
   const navigate = useNavigate();
@@ -229,18 +230,18 @@ export default function LikedEventsPage() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <Motion.button
+                <Button
                   onClick={() => navigate("/cariEvent")}
-                  className="ui-button ui-button-primary"
+                  variant="primary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Sparkles size={18} className="inline mr-2" />
                   Jelajahi Event
-                </Motion.button>
-                <Motion.button
+                </Button>
+                <Button
                   onClick={fetchLikedEvents}
-                  className="ui-button ui-button-primary"
+                  variant="primary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -249,7 +250,7 @@ export default function LikedEventsPage() {
                     className={loading ? "animate-spin" : ""}
                   />
                   Refresh
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
 
@@ -261,13 +262,13 @@ export default function LikedEventsPage() {
             >
               <div className="flex flex-row justify-between items-center gap-3 mb-4">
                 <h3 className="ui-heading-2">Filter & Pencarian</h3>
-                <button
+                <Button unstyled
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center gap-2 text-brand-600 hover:text-brand-800 font-medium"
                 >
                   <Filter size={18} />
                   <span>{showFilters ? "Sembunyikan" : "Tampilkan"} Filter</span>
-                </button>
+                </Button>
               </div>
 
               <div className="relative mb-4">
@@ -283,12 +284,12 @@ export default function LikedEventsPage() {
                   className="ui-input pl-10 pr-4"
                 />
                 {searchTerm && (
-                  <button
+                  <Button unstyled
                     onClick={() => setSearchTerm("")}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     <X size={18} />
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -332,11 +333,11 @@ export default function LikedEventsPage() {
                             <option value="name">Nama Event</option>
                             <option value="likes">Jumlah Like</option>
                           </select>
-                          <Motion.button
+                          <Button
                             onClick={() =>
                               setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                             }
-                            className="ui-button ui-button-muted py-3"
+                            variant="muted" className="py-3"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -344,7 +345,7 @@ export default function LikedEventsPage() {
                               size={20}
                               className={`text-gray-600 ${sortOrder === "desc" ? "rotate-180" : ""}`}
                             />
-                          </Motion.button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -369,13 +370,13 @@ export default function LikedEventsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-end mt-4"
                 >
-                  <button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="flex items-center gap-2 text-red-600 hover:text-red-800 font-medium text-sm"
                   >
                     <X size={16} />
                     Hapus Semua Filter
-                  </button>
+                  </Button>
                 </Motion.div>
               )}
             </Motion.div>
@@ -412,14 +413,14 @@ export default function LikedEventsPage() {
                       : "Belum ada event yang disukai"}
                   </p>
                   {hasActiveFilters && (
-                    <Motion.button
+                    <Button
                       onClick={clearFilters}
-                      className="ui-button ui-button-primary px-6 py-3"
+                      variant="primary" className="px-6 py-3"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       Reset Filter
-                    </Motion.button>
+                    </Button>
                   )}
                 </Motion.div>
               ) : (
@@ -549,14 +550,14 @@ function EventCard({ event, index, onClick, onUnlike }) {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Motion.button
+                  <Button unstyled
                     onClick={onUnlike}
                     className="w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 bg-pink-500 text-white hover:bg-pink-600"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
                     <Heart className="w-5 h-5 fill-current" />
-                  </Motion.button>
+                  </Button>
                 </div>
               </div>
             </div>

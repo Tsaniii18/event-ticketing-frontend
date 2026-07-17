@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
+import Button from "../common/Button";
 
 export function DescriptionWithNewlines({ text }) {
   if (!text) return null;
@@ -89,7 +90,7 @@ export function VenueDropdown({
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
         />
         {(searchTerm || value) && !isCustomVenue && (
-          <button
+          <Button unstyled
             type="button"
             onClick={() => {
               setSearchTerm("");
@@ -98,14 +99,14 @@ export function VenueDropdown({
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             <X size={20} />
-          </button>
+          </Button>
         )}
       </div>
 
       {!isCustomVenue && isOpen && filteredVenues.length > 0 && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredVenues.map((venue) => (
-            <button
+            <Button unstyled
               key={venue.name}
               type="button"
               className="w-full text-left px-4 py-3 hover:bg-gray-100 border-b-0 border-gray-100"
@@ -118,12 +119,12 @@ export function VenueDropdown({
               <div className="text-sm text-gray-600 truncate">
                 <span className="font-medium">Alamat:</span> {venue.address}
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
-      <button
+      <Button unstyled
         type="button"
         onClick={handleCustomVenueToggle}
         className="mt-2 block text-sm font-medium text-brand-600 hover:text-brand-800"
@@ -131,7 +132,7 @@ export function VenueDropdown({
         {isCustomVenue
           ? "Pilih dari daftar venue"
           : "Venue tidak ada di daftar? Klik di sini"}
-      </button>
+      </Button>
     </div>
   );
 }

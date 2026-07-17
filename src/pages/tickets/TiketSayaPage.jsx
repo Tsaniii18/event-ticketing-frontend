@@ -8,6 +8,7 @@ import { ticketAPI } from "../../services";
 import { Search, X, Pencil, Check, ChevronDown, Tag, MapPin, Clock, XCircle, Ticket, QrCode, RefreshCw, CheckCircle2, Sparkles, CalendarDays, Timer, ArrowUpDown, Info } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { TICKET_STATUS_CONFIG as STATUS_CONFIG } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function TiketSaya() {
   const navigate = useNavigate();
@@ -367,14 +368,14 @@ export default function TiketSaya() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Terjadi Kesalahan</h3>
             <p className="text-gray-600 mb-6 text-sm">{error}</p>
-            <Motion.button
+            <Button
               onClick={fetchTickets}
-              className="ui-button ui-button-primary w-full rounded-xl py-3"
+              variant="primary" className="w-full rounded-xl py-3"
               whileTap={{ scale: 0.98 }}
             >
               <RefreshCw size={16} className="inline mr-2" />
               Coba Lagi
-            </Motion.button>
+            </Button>
           </Motion.div>
         </div>
       </div>
@@ -396,14 +397,14 @@ export default function TiketSaya() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Belum Ada Tiket</h3>
             <p className="text-gray-600 mb-6 text-sm">Anda belum memiliki tiket. Jelajahi event menarik sekarang!</p>
-            <Motion.button
+            <Button
               onClick={() => navigate('/cariEvent')}
-              className="ui-button ui-button-primary w-full rounded-xl py-3"
+              variant="primary" className="w-full rounded-xl py-3"
               whileTap={{ scale: 0.98 }}
             >
               <Sparkles size={16} className="inline mr-2" />
               Jelajahi Event
-            </Motion.button>
+            </Button>
           </Motion.div>
         </div>
       </div>
@@ -446,14 +447,14 @@ export default function TiketSaya() {
                 </p>
               </div>
 
-              <Motion.button
+              <Button
                 onClick={fetchTickets}
-                className="ui-button ui-button-primary px-3 py-2"
+                variant="primary" className="px-3 py-2"
                 whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 <span className="hidden sm:inline">Refresh</span>
-              </Motion.button>
+              </Button>
             </Motion.div>
 
             <Motion.div
@@ -469,7 +470,7 @@ export default function TiketSaya() {
                   { key: "used", label: "Digunakan", count: statusStats.used },
                   { key: "expired", label: "Kadaluarsa", count: statusStats.expired }
                 ].filter(tab => tab.key === "all" || tab.count > 0).map((tab) => (
-                  <Motion.button
+                  <Button unstyled
                     key={tab.key}
                     onClick={() => setSelectedStatus(tab.key)}
                     className={`
@@ -492,7 +493,7 @@ export default function TiketSaya() {
                     }`}>
                       {tab.count}
                     </span>
-                  </Motion.button>
+                  </Button>
                 ))}
               </div>
 
@@ -507,12 +508,12 @@ export default function TiketSaya() {
                     className="ui-input py-2.5 pl-9 pr-9 text-sm"
                   />
                   {searchTerm && (
-                    <button
+                    <Button unstyled
                       onClick={() => setSearchTerm("")}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       <X size={16} />
-                    </button>
+                    </Button>
                   )}
                 </div>
 
@@ -526,13 +527,13 @@ export default function TiketSaya() {
                     <option value="name">Nama Event</option>
                   </select>
 
-                  <Motion.button
+                  <Button
                     onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                    className="ui-button ui-button-muted px-3"
+                    variant="muted" className="px-3"
                     whileTap={{ scale: 0.95 }}
                   >
                     <ArrowUpDown size={18} className={`text-gray-600 ${sortOrder === "desc" ? "rotate-180" : ""}`} />
-                  </Motion.button>
+                  </Button>
                 </div>
               </div>
 
@@ -546,18 +547,18 @@ export default function TiketSaya() {
                   {selectedStatus !== "all" && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs">
                       {STATUS_CONFIG[selectedStatus]?.label}
-                      <button onClick={() => setSelectedStatus("all")}><X size={12} /></button>
+                      <Button unstyled onClick={() => setSelectedStatus("all")}><X size={12} /></Button>
                     </span>
                   )}
                   {searchTerm && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">
                       "{searchTerm.length > 10 ? searchTerm.slice(0, 10) + '...' : searchTerm}"
-                      <button onClick={() => setSearchTerm("")}><X size={12} /></button>
+                      <Button unstyled onClick={() => setSearchTerm("")}><X size={12} /></Button>
                     </span>
                   )}
-                  <button onClick={clearFilters} className="text-xs text-red-600 hover:text-red-700 font-medium ml-auto">
+                  <Button unstyled onClick={clearFilters} className="text-xs text-red-600 hover:text-red-700 font-medium ml-auto">
                     Reset
-                  </button>
+                  </Button>
                 </Motion.div>
               )}
             </Motion.div>
@@ -583,13 +584,13 @@ export default function TiketSaya() {
                   <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Tidak Ada Tiket</h3>
                   <p className="text-gray-600 text-sm mb-4">Tidak ada tiket yang sesuai dengan filter</p>
-                  <Motion.button
+                  <Button
                     onClick={clearFilters}
-                    className="ui-button ui-button-primary py-2"
+                    variant="primary" className="py-2"
                     whileTap={{ scale: 0.98 }}
                   >
                     Reset Filter
-                  </Motion.button>
+                  </Button>
                 </Motion.div>
               ) : (
                 groupedByEvent.map((eventGroup, index) => (
@@ -716,12 +717,12 @@ export default function TiketSaya() {
                                                 if (e.key === 'Escape') cancelEditing(ticket.ticketId, e);
                                               }}
                                             />
-                                            <button onClick={(e) => saveTag(ticket.ticketId, e)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg">
+                                            <Button unstyled onClick={(e) => saveTag(ticket.ticketId, e)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg">
                                               <Check size={16} />
-                                            </button>
-                                            <button onClick={(e) => cancelEditing(ticket.ticketId, e)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
+                                            </Button>
+                                            <Button unstyled onClick={(e) => cancelEditing(ticket.ticketId, e)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
                                               <X size={16} />
-                                            </button>
+                                            </Button>
                                           </div>
                                         ) : (
                                           <div
@@ -741,15 +742,15 @@ export default function TiketSaya() {
 
                                     <div className="lg:w-auto lg:flex lg:items-center">
                                       {(ticket.status === "active" || ticket.status === "used") ? (
-                                        <Motion.button
+                                        <Button
                                           onClick={() => handleShowQR(ticket)}
-                                          className="ui-button ui-button-primary w-full lg:w-auto lg:min-w-35"
+                                          variant="primary" className="w-full lg:w-auto lg:min-w-35"
                                           whileTap={{ scale: 0.95 }}
                                         >
                                           <QrCode size={18} />
                                           <span className="lg:hidden">Tampilkan QR</span>
                                           <span className="hidden lg:inline">QR Code</span>
-                                        </Motion.button>
+                                        </Button>
                                       ) : (
                                         <div className={`w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium ${config.bgColor} ${config.textColor} lg:min-w-35`}>
                                           {ticket.status === "expired" && <Timer size={16} />}
@@ -795,13 +796,13 @@ export default function TiketSaya() {
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2">{selectedTicket.eventName}</h3>
                     <p className="text-gray-600 text-sm mt-1">{selectedTicket.categoryName}</p>
                   </div>
-                  <Motion.button
+                  <Button unstyled
                     onClick={handleCloseQR}
                     className="text-gray-500 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
                     whileTap={{ scale: 0.9 }}
                   >
                     <X size={20} />
-                  </Motion.button>
+                  </Button>
                 </div>
                 {selectedTicket.status === "used" && (
                   <div className="flex items-center gap-2 p-2 bg-brand-50 rounded-lg border border-brand-200 mt-3">
@@ -859,13 +860,13 @@ export default function TiketSaya() {
                   )}
                 </div>
 
-                <Motion.button
+                <Button
                   onClick={handleCloseQR}
-                  className="ui-button ui-button-primary w-full py-3"
+                  variant="primary" className="w-full py-3"
                   whileTap={{ scale: 0.98 }}
                 >
                   Tutup
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
           </Motion.div>

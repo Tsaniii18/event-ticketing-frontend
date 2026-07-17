@@ -1,6 +1,7 @@
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import Button from "./Button";
 
 export default function NotificationModal({
   isOpen,
@@ -150,7 +151,7 @@ export default function NotificationModal({
                   {message}
                 </Motion.p>
               </div>
-              <Motion.button
+              <Button unstyled
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
@@ -160,7 +161,7 @@ export default function NotificationModal({
                 whileTap={{ scale: 0.9 }}
               >
                 <X className="w-4 h-4" />
-              </Motion.button>
+              </Button>
             </div>
 
             <div className="h-1.5 bg-black/20 w-full">

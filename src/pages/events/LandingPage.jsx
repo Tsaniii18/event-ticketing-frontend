@@ -25,6 +25,7 @@ import {
   getParentCategory,
   SCROLLBAR_HIDE_STYLE as scrollbarHideStyle,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -385,7 +386,7 @@ export default function LandingPage() {
               <AnimatePresence>
                 {showArrows && bannerEvents.length > 1 && (
                   <>
-                    <Motion.button
+                    <Button unstyled
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
@@ -396,8 +397,8 @@ export default function LandingPage() {
                       className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-800 hover:bg-white transition-all z-20 shadow-lg"
                     >
                       <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
-                    </Motion.button>
-                    <Motion.button
+                    </Button>
+                    <Button unstyled
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 10 }}
@@ -408,7 +409,7 @@ export default function LandingPage() {
                       className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-800 hover:bg-white transition-all z-20 shadow-lg"
                     >
                       <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
-                    </Motion.button>
+                    </Button>
                   </>
                 )}
               </AnimatePresence>
@@ -416,7 +417,7 @@ export default function LandingPage() {
               {bannerEvents.length > 1 && (
                 <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
                   {bannerEvents.map((_, i) => (
-                    <button
+                    <Button unstyled
                       key={i}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -449,13 +450,13 @@ export default function LandingPage() {
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                   Jelajahi Kategori
                 </h2>
-                <button
+                <Button
                   onClick={() => navigate("/cariEvent")}
-                  className="ui-button ui-button-primary px-3 py-1.5 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-base"
+                  variant="primary" className="px-3 py-1.5 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-base"
                 >
                   Lihat Semua
                   <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                </button>
+                </Button>
               </div>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4">
@@ -463,7 +464,7 @@ export default function LandingPage() {
                   const catData = CATEGORY_DATA[category];
                   const IconComponent = catData?.icon || Ticket;
                   return (
-                    <Motion.button
+                    <Button unstyled
                       key={category}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -484,7 +485,7 @@ export default function LandingPage() {
                       <span className="text-xs sm:text-sm font-medium text-gray-700 text-center line-clamp-2 leading-tight">
                         {category}
                       </span>
-                    </Motion.button>
+                    </Button>
                   );
                 })}
               </div>
@@ -515,34 +516,34 @@ export default function LandingPage() {
                   </p>
                 </div>
               </div>
-              <button
+              <Button unstyled
                 onClick={() => navigate("/carievent?sort=terlaris")}
                 className="flex items-center gap-1 sm:gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-colors text-sm sm:text-base"
               >
                 Lihat Semua
                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
+              </Button>
             </div>
 
             {bestSellingEvents.length > 0 ? (
               <div className="relative group/slider">
-                <button
+                <Button unstyled
                   onClick={() => handleSliderScroll(bestSellingSliderRef, 'left')}
                   className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-300 hover:bg-emerald-50 hover:scale-110 -ml-3 sm:-ml-4 ${
                     canScrollLeftBestSelling ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                </button>
+                </Button>
 
-                <button
+                <Button unstyled
                   onClick={() => handleSliderScroll(bestSellingSliderRef, 'right')}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-300 hover:bg-emerald-50 hover:scale-110 -mr-3 sm:-mr-4 ${
                     canScrollRightBestSelling ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                </button>
+                </Button>
 
                 <div
                   ref={bestSellingSliderRef}
@@ -603,34 +604,34 @@ export default function LandingPage() {
                   </p>
                 </div>
               </div>
-              <button
+              <Button unstyled
                 onClick={() => navigate("/carievent?sort=popularitas")}
                 className="flex items-center gap-1 sm:gap-2 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-colors text-sm sm:text-base"
               >
                 Lihat Semua
                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
+              </Button>
             </div>
 
             {popularEvents.length > 0 ? (
               <div className="relative group/slider">
-                <button
+                <Button unstyled
                   onClick={() => handleSliderScroll(popularSliderRef, 'left')}
                   className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-300 hover:bg-pink-50 hover:scale-110 -ml-3 sm:-ml-4 ${
                     canScrollLeftPopular ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
-                </button>
+                </Button>
 
-                <button
+                <Button unstyled
                   onClick={() => handleSliderScroll(popularSliderRef, 'right')}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-300 hover:bg-pink-50 hover:scale-110 -mr-3 sm:-mr-4 ${
                     canScrollRightPopular ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
-                </button>
+                </Button>
 
                 <div
                   ref={popularSliderRef}
@@ -692,14 +693,14 @@ export default function LandingPage() {
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={() => navigate("/kalender-event")}
-                  className="ui-button ui-button-primary px-3 py-1.5 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-base"
+                  variant="primary" className="px-3 py-1.5 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-base"
                 >
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Lihat Kalender</span>
                   <span className="sm:hidden">Kalender</span>
-                </button>
+                </Button>
               </div>
 
               <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
@@ -722,23 +723,23 @@ export default function LandingPage() {
               </div>
 
               <div className="sm:hidden relative group/slider">
-                <button
+                <Button unstyled
                   onClick={() => handleSliderScroll(upcomingSliderRef, 'left')}
                   className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-300 hover:bg-brand-50 hover:scale-110 -ml-3 ${
                     canScrollLeftUpcoming ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   <ChevronLeft className="w-4 h-4 text-brand-600" />
-                </button>
+                </Button>
 
-                <button
+                <Button unstyled
                   onClick={() => handleSliderScroll(upcomingSliderRef, 'right')}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-lg rounded-full flex items-center justify-center transition-all duration-300 hover:bg-brand-50 hover:scale-110 -mr-3 ${
                     canScrollRightUpcoming ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   <ChevronRight className="w-4 h-4 text-brand-600" />
-                </button>
+                </Button>
 
                 <div
                   ref={upcomingSliderRef}
@@ -794,19 +795,19 @@ export default function LandingPage() {
                 pengalaman tak terlupakan
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <button
+                <Button unstyled
                   onClick={() => navigate("/carievent")}
                   className="bg-white text-brand-600 hover:bg-brand-50 px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-colors text-sm sm:text-base"
                 >
                   Jelajahi Event
-                </button>
-                <button
+                </Button>
+                <Button unstyled
                   onClick={() => navigate("/kalender-event")}
                   className="bg-brand-500 hover:bg-brand-400 text-white px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-colors flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
                 >
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
                   Lihat Kalender
-                </button>
+                </Button>
               </div>
             </div>
           </Motion.div>
@@ -887,7 +888,7 @@ function EventCard({
             </span>
           </div>
         )}
-        <button
+        <Button unstyled
           onClick={onLike}
           disabled={!canLike}
           className={`absolute top-2 right-2 sm:top-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${
@@ -908,7 +909,7 @@ function EventCard({
           <Heart
             className={`w-3 h-3 sm:w-4 sm:h-4 ${isLiked ? "fill-current" : ""}`}
           />
-        </button>
+        </Button>
       </div>
 
       <div className="flex flex-col flex-1 p-2.5 sm:p-4">
@@ -1038,7 +1039,7 @@ function UpcomingEventCard({
                     : `${daysUntil} hari`}
                 </span>
               )}
-              <button
+              <Button unstyled
                 onClick={onLike}
                 disabled={!canLike}
                 className={`w-5 h-5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-all ${
@@ -1061,7 +1062,7 @@ function UpcomingEventCard({
                     isLiked ? "fill-current" : ""
                   }`}
                 />
-              </button>
+              </Button>
             </div>
           </div>
 

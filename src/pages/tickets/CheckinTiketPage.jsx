@@ -35,6 +35,7 @@ import {
   CalendarClock,
   TimerOff
 } from "lucide-react";
+import Button from "../../components/common/Button";
 
 export default function CheckinTiketPage() {
   const { eventId } = useParams();
@@ -331,15 +332,15 @@ export default function CheckinTiketPage() {
                 </p>
               </div>
 
-              <Motion.button
+              <Button
                 onClick={handleBack}
-                className="ui-button ui-button-muted"
+                variant="muted"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <ChevronLeft size={18} />
                 Kembali
-              </Motion.button>
+              </Button>
             </Motion.div>
 
             {eventData && (
@@ -846,25 +847,25 @@ export default function CheckinTiketPage() {
                     )}
 
                     <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                      <Motion.button
+                      <Button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleRescan}
-                        className="ui-button ui-button-primary flex-1 rounded-xl px-6 py-4 font-semibold"
+                        variant="primary" className="flex-1 rounded-xl px-6 py-4 font-semibold"
                       >
                         <RefreshCw className="w-5 h-5" />
                         Scan Ulang
-                      </Motion.button>
+                      </Button>
 
-                      <Motion.button
+                      <Button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleBack}
-                        className="ui-button ui-button-muted flex-1 rounded-xl px-6 py-4 font-semibold"
+                        variant="muted" className="flex-1 rounded-xl px-6 py-4 font-semibold"
                       >
                         <Home className="w-5 h-5" />
                         Kembali ke Dashboard
-                      </Motion.button>
+                      </Button>
                     </div>
                   </Motion.div>
                 )}

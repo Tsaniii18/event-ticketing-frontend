@@ -2,7 +2,20 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import ReportChart from "../../components/events/ReportChart";
-import { CHART_COLORS } from "../../utils";
+import Button from "../../components/common/Button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/common/Table";
+import {
+  CHART_COLORS,
+  formatCurrencyOrZero as formatRupiah,
+} from "../../utils";
 import {
   CalendarDays,
   MapPin,
@@ -20,7 +33,6 @@ import {
 } from "lucide-react";
 import { eventAPI } from "../../services";
 import { motion as Motion } from "framer-motion";
-import { formatCurrencyOrZero as formatRupiah } from "../../utils";
 
 export default function LaporanEventPage() {
   const { eventId } = useParams();
@@ -113,13 +125,14 @@ export default function LaporanEventPage() {
                 </div>
                 <p className="text-lg sm:text-xl text-gray-800 font-semibold mb-2">Terjadi Kesalahan</p>
                 <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
-                <button
+                <Button
                   onClick={() => navigate(-1)}
-                  className="ui-button ui-button-muted px-4 py-2 sm:px-6 sm:text-base"
+                  variant="muted"
+                  className="sm:px-6 sm:text-base"
                 >
                   <ArrowLeft size={16} />
                   Kembali
-                </button>
+                </Button>
               </div>
             ) : !reportData ? (
               <div className="flex flex-col items-center justify-center py-16 sm:py-20">
@@ -128,13 +141,14 @@ export default function LaporanEventPage() {
                 </div>
                 <p className="text-lg sm:text-xl text-gray-800 font-semibold mb-2">Data Tidak Ditemukan</p>
                 <p className="text-gray-600 mb-6 text-sm sm:text-base">Laporan untuk event ini tidak tersedia</p>
-                <button
+                <Button
                   onClick={() => navigate(-1)}
-                  className="ui-button ui-button-muted px-4 py-2 sm:px-6 sm:text-base"
+                  variant="muted"
+                  className="sm:px-6 sm:text-base"
                 >
                   <ArrowLeft size={16} />
                   Kembali
-                </button>
+                </Button>
               </div>
             ) : (
               <>
@@ -156,24 +170,26 @@ export default function LaporanEventPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                      <button
+                      <Button
                         onClick={fetchEventReport}
-                        className="ui-button ui-button-primary px-3 py-1.5 sm:px-4 sm:py-2.5 sm:text-base"
+                        size="sm"
+                        loading={loading}
+                        loadingLabel="Refresh"
+                        className="sm:min-h-10 sm:px-4 sm:text-base"
                       >
-                        <RefreshCw
-                          size={16}
-                          className={`sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`}
-                        />
+                        <RefreshCw size={16} className="sm:w-4 sm:h-4" />
                         <span className="hidden sm:inline">Refresh</span>
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button
                         onClick={() => navigate(-1)}
-                        className="ui-button ui-button-muted px-3 py-1.5 sm:px-4 sm:py-2.5 sm:text-base"
+                        variant="muted"
+                        size="sm"
+                        className="sm:min-h-10 sm:px-4 sm:text-base"
                       >
                         <ArrowLeft size={16} className="sm:w-4 sm:h-4" />
                         <span className="hidden sm:inline">Kembali</span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </Motion.div>
@@ -285,27 +301,25 @@ export default function LaporanEventPage() {
                     Detail Penjualan per Kategori Tiket
                   </h3>
 
-                  <div className="ui-table-shell">
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-180">
-                        <thead>
-                          <tr className="bg-gray-50 border-b border-gray-200">
-                            <th className="text-left px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-700 text-xs sm:text-sm">Kategori</th>
-                            <th className="text-center px-3 sm:px-4 py-3 sm:py-4 font-semibold text-gray-700 text-xs sm:text-sm">Harga</th>
-                            <th className="text-center px-3 sm:px-4 py-3 sm:py-4 font-semibold text-gray-700 text-xs sm:text-sm">Kuota</th>
-                            <th className="text-center px-3 sm:px-4 py-3 sm:py-4 font-semibold text-gray-700 text-xs sm:text-sm">Terjual</th>
-                            <th className="text-center px-3 sm:px-4 py-3 sm:py-4 font-semibold text-gray-700 text-xs sm:text-sm">Check-in</th>
-                            <th className="text-right px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-700 text-xs sm:text-sm">Pendapatan</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                  <Table className="min-w-180">
+                        <TableHeader>
+                          <TableRow header>
+                            <TableHead>Kategori</TableHead>
+                            <TableHead align="center">Harga</TableHead>
+                            <TableHead align="center">Kuota</TableHead>
+                            <TableHead align="center">Terjual</TableHead>
+                            <TableHead align="center">Check-in</TableHead>
+                            <TableHead align="right">Pendapatan</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
                           {(!reportData.purchase_data || reportData.purchase_data.length === 0) ? (
-                            <tr>
-                              <td colSpan="6" className="px-6 py-10 sm:py-12 text-center text-gray-500">
+                            <TableRow>
+                              <TableCell colSpan="6" align="center" className="py-10 text-gray-500 sm:py-12">
                                 <Ticket className="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mx-auto mb-3" />
                                 <p className="text-sm sm:text-base">Tidak ada kategori tiket</p>
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           ) : (
                             reportData.purchase_data.map((item, index) => {
                               const checkin = reportData.checkin_data?.find(c => c.name === item.name) || { value: 0 };
@@ -318,8 +332,8 @@ export default function LaporanEventPage() {
                               const checkinPercent = sold > 0 ? ((checkinCount / sold) * 100).toFixed(0) : 0;
 
                               return (
-                                <tr key={`row-${index}`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                  <td className="px-4 sm:px-6 py-3 sm:py-4">
+                                <TableRow key={`row-${index}`}>
+                                  <TableCell>
                                     <div className="flex items-center gap-2 sm:gap-3">
                                       <div
                                         className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0"
@@ -327,10 +341,10 @@ export default function LaporanEventPage() {
                                       />
                                       <span className="font-medium text-gray-800 text-xs sm:text-sm">{item.name}</span>
                                     </div>
-                                  </td>
-                                  <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-gray-600 text-xs sm:text-sm">{formatRupiah(price)}</td>
-                                  <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-gray-600 text-xs sm:text-sm">{quota}</td>
-                                  <td className="px-3 sm:px-4 py-3 sm:py-4 text-center">
+                                  </TableCell>
+                                  <TableCell align="center">{formatRupiah(price)}</TableCell>
+                                  <TableCell align="center">{quota}</TableCell>
+                                  <TableCell align="center">
                                     <div className="flex flex-col items-center">
                                       <span className="font-semibold text-brand-600 text-xs sm:text-sm">{sold}</span>
                                       <div className="flex items-center gap-1 sm:gap-2 mt-1">
@@ -343,8 +357,8 @@ export default function LaporanEventPage() {
                                         <span className="text-[10px] sm:text-xs text-gray-500">{soldPercent}%</span>
                                       </div>
                                     </div>
-                                  </td>
-                                  <td className="px-3 sm:px-4 py-3 sm:py-4 text-center">
+                                  </TableCell>
+                                  <TableCell align="center">
                                     <div className="flex flex-col items-center">
                                       <span className="font-semibold text-green-600 text-xs sm:text-sm">{checkinCount}</span>
                                       <div className="flex items-center gap-1 sm:gap-2 mt-1">
@@ -357,30 +371,28 @@ export default function LaporanEventPage() {
                                         <span className="text-[10px] sm:text-xs text-gray-500">{checkinPercent}%</span>
                                       </div>
                                     </div>
-                                  </td>
-                                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-right font-semibold text-purple-600 text-xs sm:text-sm">
+                                  </TableCell>
+                                  <TableCell align="right" className="font-semibold text-purple-600">
                                     {formatRupiah(income)}
-                                  </td>
-                                </tr>
+                                  </TableCell>
+                                </TableRow>
                               );
                             })
                           )}
-                        </tbody>
+                        </TableBody>
                         {reportData.purchase_data && reportData.purchase_data.length > 0 && (
-                          <tfoot>
-                            <tr className="bg-gray-50 font-semibold">
-                              <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-800 text-xs sm:text-sm">Total</td>
-                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-gray-600 text-xs sm:text-sm">-</td>
-                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-gray-800 text-xs sm:text-sm">{totalQuota}</td>
-                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-brand-600 text-xs sm:text-sm">{totalSold}</td>
-                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-green-600 text-xs sm:text-sm">{totalCheckins}</td>
-                              <td className="px-4 sm:px-6 py-3 sm:py-4 text-right text-purple-600 text-xs sm:text-sm">{formatRupiah(totalIncome)}</td>
-                            </tr>
-                          </tfoot>
+                          <TableFooter>
+                            <TableRow>
+                              <TableCell className="text-gray-900">Total</TableCell>
+                              <TableCell align="center" className="text-gray-500">-</TableCell>
+                              <TableCell align="center" className="text-gray-900">{totalQuota}</TableCell>
+                              <TableCell align="center" className="text-brand-600">{totalSold}</TableCell>
+                              <TableCell align="center" className="text-success-600">{totalCheckins}</TableCell>
+                              <TableCell align="right" className="text-purple-600">{formatRupiah(totalIncome)}</TableCell>
+                            </TableRow>
+                          </TableFooter>
                         )}
-                      </table>
-                    </div>
-                  </div>
+                  </Table>
                 </Motion.div>
 
                 <Motion.div
@@ -414,13 +426,14 @@ export default function LaporanEventPage() {
                   transition={{ duration: 0.6, delay: 0.6 }}
                   className="flex justify-center"
                 >
-                  <button
+                  <Button
                     onClick={handleDownloadReport}
-                    className="ui-button ui-button-primary rounded-xl px-6 py-3 shadow-lg hover:shadow-xl sm:px-8 sm:py-4 sm:text-base"
+                    size="lg"
+                    className="shadow-lg hover:shadow-xl sm:px-8"
                   >
                     <Download size={18} className="sm:w-5 sm:h-5" />
                     Unduh Laporan (CSV)
-                  </button>
+                  </Button>
                 </Motion.div>
               </>
             )}

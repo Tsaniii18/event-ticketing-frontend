@@ -14,6 +14,7 @@ import {
   Shield, Edit, CheckCircle,
   Clock, XCircle, Download, Eye
 } from "lucide-react";
+import Button from "../../components/common/Button";
 
 export default function LihatProfilPage() {
   const [user, setUser] = useState(null);
@@ -144,15 +145,15 @@ export default function LihatProfilPage() {
                   </Motion.h1>
                   <p className="text-gray-500 mt-1">Kelola informasi profil Anda</p>
                 </div>
-                <Motion.button
+                <Button
                   onClick={() => setShowEditModal(true)}
-                  className="ui-button ui-button-primary bg-linear-to-r from-brand-600 to-brand-700 py-2 hover:from-brand-700 hover:to-brand-800"
+                  variant="primary" className="bg-linear-to-r from-brand-600 to-brand-700 py-2 hover:from-brand-700 hover:to-brand-800"
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Edit size={18} />
                   Edit Profil
-                </Motion.button>
+                </Button>
               </div>
             </div>
 
@@ -195,7 +196,7 @@ export default function LihatProfilPage() {
                     </Motion.div>
 
                     {user.profile_pict && (
-                      <Motion.button
+                      <Button unstyled
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
@@ -204,7 +205,7 @@ export default function LihatProfilPage() {
                       >
                         <Eye size={12} />
                         Lihat Foto
-                      </Motion.button>
+                      </Button>
                     )}
 
                     {user.role === "organizer" && statusInfo && (
@@ -369,13 +370,13 @@ export default function LihatProfilPage() {
                         <div className="bg-white rounded-lg p-4 border border-brand-200">
                           <p className="text-sm text-gray-600 mb-3">KTP telah diunggah dan diverifikasi</p>
                           <div className="flex flex-wrap gap-3">
-                            <button
+                            <Button unstyled
                               onClick={handleViewKTP}
                               className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-800 font-medium px-3 py-1.5 hover:bg-brand-50 rounded-lg transition-colors"
                             >
                               <Eye size={16} />
                               Lihat KTP
-                            </button>
+                            </Button>
                             <a
                               href={user.ktp}
                               target="_blank"

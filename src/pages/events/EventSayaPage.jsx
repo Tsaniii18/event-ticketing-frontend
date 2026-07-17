@@ -15,6 +15,15 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import Navbar from "../../components/layout/Navbar";
+import Button from "../../components/common/Button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/common/Table";
 import { eventAPI } from "../../services";
 import {
   CATEGORIES,
@@ -174,14 +183,13 @@ export default function EventSayaPage() {
             <div className="text-red-600 text-lg font-semibold mb-2">
               {error}
             </div>
-            <Motion.button
+            <Button
               onClick={fetchMyEvents}
-              className="ui-button ui-button-primary px-5"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               Coba Lagi
-            </Motion.button>
+            </Button>
           </Motion.div>
         </div>
       </div>
@@ -214,29 +222,28 @@ export default function EventSayaPage() {
               </div>
               <div className="flex items-center gap-3 mt-4 md:mt-0">
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button
                     onClick={clearFilters}
-                    className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 font-medium"
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger-600 hover:bg-danger-50 hover:text-danger-700"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <X size={16} />
                     Hapus Filter
-                  </Motion.button>
+                  </Button>
                 )}
-                <Motion.button
+                <Button
                   onClick={handleRefresh}
-                  disabled={refreshing}
-                  className="ui-button ui-button-primary disabled:opacity-50"
+                  loading={refreshing}
+                  loadingLabel="Memperbarui..."
                   whileHover={{ scale: refreshing ? 1 : 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <RefreshCw
-                    size={18}
-                    className={refreshing ? "animate-spin" : ""}
-                  />
-                  {refreshing ? "Memperbarui..." : "Refresh"}
-                </Motion.button>
+                  <RefreshCw size={18} />
+                  Refresh
+                </Button>
               </div>
             </Motion.div>
 
@@ -254,25 +261,27 @@ export default function EventSayaPage() {
                   <h3 className="ui-heading-2">Filter & Pencarian</h3>
                   <div className="flex items-center gap-3">
                     {hasActiveFilters && (
-                      <Motion.button
+                      <Button
                         onClick={clearFilters}
-                        className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 font-medium"
+                        variant="ghost"
+                        size="sm"
+                        className="text-danger-600 hover:bg-danger-50 hover:text-danger-700"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
                         <X size={16} />
                         Hapus Filter
-                      </Motion.button>
+                      </Button>
                     )}
-                    <Motion.button
+                    <Button
                       onClick={() => setShowFilters(!showFilters)}
-                      className="ui-button ui-button-secondary font-medium"
+                      variant="secondary"
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <Filter size={18} />
                       {showFilters ? "Sembunyikan Filter" : "Tampilkan Filter"}
-                    </Motion.button>
+                    </Button>
                   </div>
                 </div>
 
@@ -432,40 +441,38 @@ export default function EventSayaPage() {
                       : "Mulai buat event pertama Anda untuk melihatnya di sini"}
                   </p>
                   {hasActiveFilters && (
-                    <Motion.button
+                    <Button
                       onClick={clearFilters}
-                      className="ui-button ui-button-primary px-5 shadow-md"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       Hapus Semua Filter
-                    </Motion.button>
+                    </Button>
                   )}
                 </Motion.div>
               ) : (
                 <Motion.div
                   variants={itemVariants}
-                  className="ui-table-shell shadow-sm"
                 >
-                  <table className="w-full min-w-190">
-                    <thead className="bg-gray-50">
-                      <tr className="text-left text-sm font-semibold text-gray-700">
-                        <th className="p-4 border-b">Event</th>
-                        <th className="p-4 border-b">Lokasi & Tanggal</th>
-                        <th className="p-4 border-b">Status</th>
-                        <th className="p-4 border-b text-center">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
+                  <Table className="min-w-190">
+                    <TableHeader>
+                      <TableRow header>
+                        <TableHead>Event</TableHead>
+                        <TableHead>Lokasi & Tanggal</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead align="center">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {filteredEvents.map((event, index) => (
-                        <Motion.tr
+                        <TableRow
                           key={event.event_id}
-                          className="hover:bg-gray-50 transition-colors"
+                          animated
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
                         >
-                          <td className="p-4">
+                          <TableCell>
                             <div className="flex flex-col">
                               <h3 className="font-semibold text-gray-900 text-lg">
                                 {event.name}
@@ -499,8 +506,8 @@ export default function EventSayaPage() {
                                 )}
                               </div>
                             </div>
-                          </td>
-                          <td className="p-4">
+                          </TableCell>
+                          <TableCell>
                             <div className="space-y-1">
                               <div className="text-sm text-gray-600 line-clamp-2">
                                 {event.location}
@@ -517,8 +524,8 @@ export default function EventSayaPage() {
                                 )}
                               </div>
                             </div>
-                          </td>
-                          <td className="p-4">
+                          </TableCell>
+                          <TableCell>
                             <div className="flex flex-col gap-2">
                               <span
                                 className={`ui-badge w-fit py-1.5 ${getStatusColor(event.status)}`}
@@ -533,61 +540,77 @@ export default function EventSayaPage() {
                                   </div>
                                 )}
                             </div>
-                          </td>
-                          <td className="p-4">
+                          </TableCell>
+                          <TableCell align="center">
                             <div className="flex flex-wrap gap-2 justify-center min-h-11 items-center">
-                              <ActionButton
-                                icon={Eye}
-                                label="Rincian"
+                              <Button
+                                variant="soft"
+                                tone="brand"
+                                size="sm"
                                 title="Lihat rincian event"
-                                className="bg-brand-50 hover:bg-brand-100 text-brand-700"
+                                className="min-w-25"
                                 onClick={() =>
                                   navigate(`/detailEvent/${event.event_id}`)
                                 }
-                              />
+                              >
+                                <Eye size={16} />
+                                Rincian
+                              </Button>
                               {(event.status === "pending" ||
                                 event.status === "rejected") && (
-                                <ActionButton
-                                  icon={Pencil}
-                                  label="Edit"
+                                <Button
+                                  variant="soft"
+                                  tone="success"
+                                  size="sm"
                                   title="Edit event"
-                                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                                  className="min-w-25"
                                   onClick={() =>
                                     navigate(`/edit-event/${event.event_id}`)
                                   }
-                                />
+                                >
+                                  <Pencil size={16} />
+                                  Edit
+                                </Button>
                               )}
                               {(event.status === "approved" ||
                                 event.status === "ended" ||
                                 event.status === "active") && (
-                                <ActionButton
-                                  icon={BarChart3}
-                                  label="Laporan"
+                                <Button
+                                  variant="soft"
+                                  tone="purple"
+                                  size="sm"
                                   title="Lihat laporan"
-                                  className="bg-purple-50 hover:bg-purple-100 text-purple-700"
+                                  className="min-w-25"
                                   onClick={() =>
                                     navigate(`/laporan/${event.event_id}`)
                                   }
-                                />
+                                >
+                                  <BarChart3 size={16} />
+                                  Laporan
+                                </Button>
                               )}
                               {(event.status === "approved" ||
                                 event.status === "active") && (
-                                <ActionButton
-                                  icon={QrCode}
-                                  label="Scan"
+                                <Button
+                                  variant="soft"
+                                  tone="neutral"
+                                  size="sm"
                                   title="Scan tiket"
-                                  className="bg-gray-800 hover:bg-black text-white"
+                                  className="min-w-25 bg-gray-800 text-white hover:bg-gray-900 hover:text-white"
                                   onClick={() =>
                                     navigate(`/scan/${event.event_id}`)
                                   }
-                                />
+                                >
+                                  <QrCode size={16} />
+                                  Scan
+                                </Button>
                               )}
                             </div>
-                          </td>
-                        </Motion.tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </Motion.div>
               )}
 
@@ -602,14 +625,16 @@ export default function EventSayaPage() {
                     dari <span className="font-medium">{events.length}</span> event
                   </div>
                   {hasActiveFilters && (
-                    <Motion.button
+                    <Button
                       onClick={clearFilters}
-                      className="text-brand-600 hover:text-brand-800 font-medium"
+                      variant="ghost"
+                      size="sm"
+                      className="text-brand-600 hover:bg-brand-50 hover:text-brand-800"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       Tampilkan Semua Event
-                    </Motion.button>
+                    </Button>
                   )}
                 </Motion.div>
               )}
@@ -618,21 +643,5 @@ export default function EventSayaPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function ActionButton({ icon, label, title, className, onClick }) {
-  const Icon = icon;
-  return (
-    <Motion.button
-      onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-w-25 justify-center ${className}`}
-      title={title}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      <Icon size={16} />
-      {label}
-    </Motion.button>
   );
 }

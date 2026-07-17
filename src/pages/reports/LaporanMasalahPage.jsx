@@ -21,6 +21,7 @@ import {
   formatTimeAgo as getTimeAgo,
   getFeedbackStatusLabel,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function LaporanMasalahPage() {
   const [reports, setReports] = useState([]);
@@ -170,12 +171,12 @@ export default function LaporanMasalahPage() {
                 <h2 className="text-xl font-bold text-gray-900">
                   Detail Laporan
                 </h2>
-                <button
+                <Button unstyled
                   onClick={() => setDetailModal({ open: false, data: null, responseInput: "" })}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <X size={20} />
-                </button>
+                </Button>
               </div>
 
               <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
@@ -244,18 +245,18 @@ export default function LaporanMasalahPage() {
               </div>
 
               <div className="flex justify-between gap-3 p-6 border-t border-gray-100 bg-gray-50">
-                <Motion.button
-                  className="ui-button ui-button-secondary px-5"
+                <Button
+                  variant="secondary" className="px-5"
                   onClick={() => setDetailModal({ open: false, data: null, responseInput: "" })}
                   disabled={updating}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Batal
-                </Motion.button>
+                </Button>
                 <div className="flex gap-2">
-                  <Motion.button
-                    className="ui-button ui-button-danger px-5"
+                  <Button
+                    variant="danger" className="px-5"
                     onClick={() => updateFeedbackStatus("rejected")}
                     disabled={updating}
                     whileHover={{ scale: 1.02 }}
@@ -272,9 +273,9 @@ export default function LaporanMasalahPage() {
                         Tolak
                       </>
                     )}
-                  </Motion.button>
-                  <Motion.button
-                    className="ui-button ui-button-warning px-5"
+                  </Button>
+                  <Button
+                    variant="warning" className="px-5"
                     onClick={() => updateFeedbackStatus("processed")}
                     disabled={updating}
                     whileHover={{ scale: 1.02 }}
@@ -291,9 +292,9 @@ export default function LaporanMasalahPage() {
                         Proses
                       </>
                     )}
-                  </Motion.button>
-                  <Motion.button
-                    className="ui-button ui-button-success px-5"
+                  </Button>
+                  <Button
+                    variant="success" className="px-5"
                     onClick={() => updateFeedbackStatus("completed")}
                     disabled={updating}
                     whileHover={{ scale: 1.02 }}
@@ -310,7 +311,7 @@ export default function LaporanMasalahPage() {
                         Terima
                       </>
                     )}
-                  </Motion.button>
+                  </Button>
                 </div>
               </div>
             </Motion.div>
@@ -341,7 +342,7 @@ export default function LaporanMasalahPage() {
 
               <div className="flex items-center gap-3 mt-4 md:mt-0">
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 font-medium"
                     whileHover={{ scale: 1.05 }}
@@ -349,18 +350,18 @@ export default function LaporanMasalahPage() {
                   >
                     <X size={16} />
                     Hapus Filter
-                  </Motion.button>
+                  </Button>
                 )}
 
-                <Motion.button
+                <Button
                   onClick={handleRefresh}
-                  className="ui-button ui-button-primary"
+                  variant="primary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <RefreshCw size={18} />
                   Refresh
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
 
@@ -440,15 +441,15 @@ export default function LaporanMasalahPage() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                 <h3 className="ui-heading-2">Filter & Pencarian</h3>
 
-                <Motion.button
+                <Button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="ui-button ui-button-secondary"
+                  variant="secondary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Filter size={18} />
                   {showFilters ? "Sembunyikan Filter" : "Tampilkan Filter"}
-                </Motion.button>
+                </Button>
               </div>
 
               <AnimatePresence>
@@ -562,14 +563,14 @@ export default function LaporanMasalahPage() {
                   }
                 </p>
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button
                     onClick={clearFilters}
-                    className="ui-button ui-button-primary px-5"
+                    variant="primary" className="px-5"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Hapus Semua Filter
-                  </Motion.button>
+                  </Button>
                 )}
               </Motion.div>
             ) : (
@@ -610,15 +611,15 @@ export default function LaporanMasalahPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Motion.button
+                        <Button
                           onClick={() => openDetail(report)}
-                          className="ui-button ui-button-primary min-w-30 justify-center"
+                          variant="primary" className="min-w-30 justify-center"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <Eye size={16} />
                           Tinjau
-                        </Motion.button>
+                        </Button>
                       </div>
                     </div>
                   </Motion.div>
@@ -637,14 +638,14 @@ export default function LaporanMasalahPage() {
                   <span className="font-medium">{reports.length}</span> laporan
                 </div>
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="text-brand-600 hover:text-brand-800 font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Tampilkan Semua Laporan
-                  </Motion.button>
+                  </Button>
                 )}
               </Motion.div>
             )}

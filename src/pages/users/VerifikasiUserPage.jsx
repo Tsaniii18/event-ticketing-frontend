@@ -10,6 +10,7 @@ import {
   USER_VERIFICATION_STATUS_CONFIG,
   USER_VERIFICATION_STATUS_LABELS,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function VerifikasiUserPage() {
   const navigate = useNavigate();
@@ -141,7 +142,7 @@ export default function VerifikasiUserPage() {
 
               <div className="flex items-center gap-3 mt-4 md:mt-0">
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 font-medium"
                     whileHover={{ scale: 1.05 }}
@@ -149,18 +150,18 @@ export default function VerifikasiUserPage() {
                   >
                     <X size={16} />
                     Hapus Filter
-                  </Motion.button>
+                  </Button>
                 )}
 
-                <Motion.button
+                <Button
                   onClick={handleRefresh}
-                  className="ui-button ui-button-primary"
+                  variant="primary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <RefreshCw size={18} />
                   Refresh
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
 
@@ -222,7 +223,7 @@ export default function VerifikasiUserPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex border-b border-gray-200 mb-6"
             >
-              <Motion.button
+              <Button unstyled
                 onClick={() => setActiveTab("pending")}
                 className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "pending"
@@ -239,8 +240,8 @@ export default function VerifikasiUserPage() {
                     {pendingUsers.length}
                   </span>
                 )}
-              </Motion.button>
-              <Motion.button
+              </Button>
+              <Button unstyled
                 onClick={() => setActiveTab("all")}
                 className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "all"
@@ -255,7 +256,7 @@ export default function VerifikasiUserPage() {
                 <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
                   {allUsers.length}
                 </span>
-              </Motion.button>
+              </Button>
             </Motion.div>
 
             <Motion.div
@@ -267,15 +268,15 @@ export default function VerifikasiUserPage() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                 <h3 className="ui-heading-2">Filter & Pencarian</h3>
 
-                <Motion.button
+                <Button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="ui-button ui-button-secondary"
+                  variant="secondary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Filter size={18} />
                   {showFilters ? "Sembunyikan Filter" : "Tampilkan Filter"}
-                </Motion.button>
+                </Button>
               </div>
 
               <AnimatePresence>
@@ -377,14 +378,14 @@ export default function VerifikasiUserPage() {
                   }
                 </p>
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button
                     onClick={clearFilters}
-                    className="ui-button ui-button-primary px-5"
+                    variant="primary" className="px-5"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Hapus Semua Filter
-                  </Motion.button>
+                  </Button>
                 )}
               </Motion.div>
             ) : (
@@ -423,15 +424,15 @@ export default function VerifikasiUserPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Motion.button
+                        <Button
                           onClick={() => navigate(`/tinjauUser/${user.user_id}`)}
-                          className="ui-button ui-button-primary min-w-30 justify-center"
+                          variant="primary" className="min-w-30 justify-center"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <Eye size={16} />
                           Tinjau
-                        </Motion.button>
+                        </Button>
                       </div>
                     </div>
                   </Motion.div>
@@ -452,14 +453,14 @@ export default function VerifikasiUserPage() {
                   </span> user
                 </div>
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="text-brand-600 hover:text-brand-800 font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Tampilkan Semua User
-                  </Motion.button>
+                  </Button>
                 )}
               </Motion.div>
             )}

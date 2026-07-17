@@ -27,6 +27,7 @@ import {
   formatLongDateOrEmpty as formatDate,
   transformCartData,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function KeranjangPage() {
   const navigate = useNavigate();
@@ -282,15 +283,15 @@ export default function KeranjangPage() {
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Terjadi Kesalahan</h3>
             <p className="text-gray-600 mb-8">{error}</p>
-            <Motion.button
+            <Button
               onClick={fetchCart}
-              className="ui-button ui-button-primary w-full rounded-xl px-6 py-4"
+              variant="primary" className="w-full rounded-xl px-6 py-4"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <RefreshCw size={18} className="inline mr-2" />
               Coba Lagi
-            </Motion.button>
+            </Button>
           </Motion.div>
         </div>
       </div>
@@ -334,21 +335,21 @@ export default function KeranjangPage() {
                   Hapus tiket "{itemToDelete?.ticketName}" dari keranjang?
                 </p>
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={() => {
                       setShowDeleteModal(false);
                       setItemToDelete(null);
                     }}
-                    className="ui-button ui-button-secondary flex-1 py-2"
+                    variant="secondary" className="flex-1 py-2"
                   >
                     Batal
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={confirmDelete}
-                    className="ui-button ui-button-danger flex-1 py-2"
+                    variant="danger" className="flex-1 py-2"
                   >
                     Hapus
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Motion.div>
@@ -381,21 +382,21 @@ export default function KeranjangPage() {
                   Jumlah tiket akan menjadi 0. Hapus tiket "{itemToDecrement?.ticketName}" dari keranjang?
                 </p>
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={() => {
                       setShowDecrementModal(false);
                       setItemToDecrement(null);
                     }}
-                    className="ui-button ui-button-secondary flex-1 py-2"
+                    variant="secondary" className="flex-1 py-2"
                   >
                     Batal
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={confirmDecrement}
-                    className="ui-button ui-button-danger flex-1 py-2"
+                    variant="danger" className="flex-1 py-2"
                   >
                     Hapus
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Motion.div>
@@ -428,17 +429,17 @@ export default function KeranjangPage() {
                   Anda akan mengklaim tiket gratis. Setelah dikonfirmasi, tiket akan langsung muncul di halaman "Tiket Saya" dan Anda akan langsung diarahkan ke sana.
                 </p>
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={() => setShowFreeTicketModal(false)}
-                    className="ui-button ui-button-secondary flex-1 py-2"
+                    variant="secondary" className="flex-1 py-2"
                     disabled={checkoutLoading}
                   >
                     Batal
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={confirmFreeTicketCheckout}
                     disabled={checkoutLoading}
-                    className="ui-button ui-button-success flex-1 py-2"
+                    variant="success" className="flex-1 py-2"
                   >
                     {checkoutLoading ? (
                       <>
@@ -448,7 +449,7 @@ export default function KeranjangPage() {
                     ) : (
                       "Konfirmasi"
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Motion.div>
@@ -475,14 +476,14 @@ export default function KeranjangPage() {
                   <Check className="w-5 h-5" />
                   Checkout Berhasil!
                 </h2>
-                <Motion.button
+                <Button unstyled
                   onClick={() => setShowCheckoutModal(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
                   <X className="w-6 h-6" />
-                </Motion.button>
+                </Button>
               </div>
 
               <div className="space-y-4">
@@ -522,35 +523,35 @@ export default function KeranjangPage() {
                       readOnly
                       className="ui-input flex-1 px-3 py-2 text-xs"
                     />
-                    <Motion.button
+                    <Button unstyled
                       onClick={() => copyToClipboard(paymentData.payment_url)}
                       className="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition flex items-center justify-center"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-600" />}
-                    </Motion.button>
+                    </Button>
                   </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Motion.button
+                  <Button
                     onClick={() => setShowCheckoutModal(false)}
-                    className="ui-button ui-button-secondary flex-1 py-3"
+                    variant="secondary" className="flex-1 py-3"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     Tutup
-                  </Motion.button>
-                  <Motion.button
+                  </Button>
+                  <Button
                     onClick={openPaymentPage}
-                    className="ui-button ui-button-primary flex-1 py-3"
+                    variant="primary" className="flex-1 py-3"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <ExternalLink className="w-4 h-4" />
                     Buka Pembayaran
-                  </Motion.button>
+                  </Button>
                 </div>
               </div>
             </Motion.div>
@@ -582,15 +583,15 @@ export default function KeranjangPage() {
                 </p>
               </div>
 
-              <Motion.button
+              <Button
                 onClick={fetchCart}
-                className="ui-button ui-button-primary"
+                variant="primary"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                 Refresh
-              </Motion.button>
+              </Button>
             </Motion.div>
 
             {cart.length === 0 ? (
@@ -604,15 +605,15 @@ export default function KeranjangPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Keranjang Kosong</h3>
                 <p className="text-gray-600 mb-8">Belum ada tiket di keranjang belanja Anda</p>
-                <Motion.button
+                <Button
                   onClick={() => navigate('/cariEvent')}
-                  className="ui-button ui-button-primary rounded-xl px-6 py-4"
+                  variant="primary" className="rounded-xl px-6 py-4"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Sparkles size={18} className="inline mr-2" />
                   Jelajahi Event
-                </Motion.button>
+                </Button>
               </Motion.div>
             ) : (
               <>
@@ -683,26 +684,26 @@ export default function KeranjangPage() {
 
                                 <div className="flex items-center gap-4">
                                   <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-300 p-2 shadow-sm">
-                                    <Motion.button
+                                    <Button unstyled
                                       onClick={() => decrementQty(ticket.cartId, ticket.qty, ticket.name)}
                                       className="p-1 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
                                       whileHover={{ scale: 1.1 }}
                                       whileTap={{ scale: 0.9 }}
                                     >
                                       <Minus size={16} className="text-gray-700" />
-                                    </Motion.button>
+                                    </Button>
                                     <span className="w-8 text-center font-bold text-lg text-gray-900">{ticket.qty}</span>
-                                    <Motion.button
+                                    <Button unstyled
                                       onClick={() => incrementQty(ticket.cartId, ticket.qty, ticket.stock)}
                                       className="p-1 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
                                       whileHover={{ scale: 1.1 }}
                                       whileTap={{ scale: 0.9 }}
                                     >
                                       <Plus size={16} className="text-gray-700" />
-                                    </Motion.button>
+                                    </Button>
                                   </div>
 
-                                  <Motion.button
+                                  <Button unstyled
                                     onClick={() => deleteCartItem(ticket.cartId, ticket.name)}
                                     className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center"
                                     title="Hapus dari keranjang"
@@ -710,7 +711,7 @@ export default function KeranjangPage() {
                                     whileTap={{ scale: 0.9 }}
                                   >
                                     <Trash2 size={18} />
-                                  </Motion.button>
+                                  </Button>
                                 </div>
                               </div>
 
@@ -779,8 +780,8 @@ export default function KeranjangPage() {
                     </div>
 
                     <div className="lg:w-64">
-                      <Motion.button
-                        className="ui-button ui-button-primary w-full rounded-xl bg-linear-to-r from-brand-600 to-brand-700 py-4 text-lg font-semibold shadow-lg transition-all duration-200 hover:from-brand-700 hover:to-brand-800 hover:shadow-xl"
+                      <Button
+                        variant="primary" className="w-full rounded-xl bg-linear-to-r from-brand-600 to-brand-700 py-4 text-lg font-semibold shadow-lg transition-all duration-200 hover:from-brand-700 hover:to-brand-800 hover:shadow-xl"
                         onClick={handleCheckout}
                         disabled={checkoutLoading}
                         whileHover={{ scale: 1.02 }}
@@ -797,7 +798,7 @@ export default function KeranjangPage() {
                             Checkout & Bayar
                           </>
                         )}
-                      </Motion.button>
+                      </Button>
                     </div>
                   </div>
                 </Motion.div>

@@ -26,6 +26,7 @@ import useNotification from "../../hooks/useNotification";
 import useSessionUser from "../../hooks/useSessionUser";
 import useClickOutside from "../../hooks/useClickOutside";
 import NotificationModal from "../common/NotificationModal";
+import Button from "../common/Button";
 
 export default function Navbar() {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
@@ -280,12 +281,12 @@ export default function Navbar() {
         <div className="ui-container-wide">
           <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
             <div className="flex items-center space-x-4">
-              <button
+              <Button unstyled
                 className="md:hidden text-white hover:text-amber-400 transition-colors"
                 onClick={() => setMobileMenuIsOpen(true)}
               >
                 <Menu className="w-7 h-7" />
-              </button>
+              </Button>
 
               <Link to="/" className="flex items-center space-x-2">
                 <div className="bg-white rounded-lg p-1 shadow-md">
@@ -313,17 +314,17 @@ export default function Navbar() {
 
             <div className="flex items-center space-x-4">
               {shouldShowCart() && (
-                <button
+                <Button unstyled
                   className="relative text-white hover:text-amber-400 transition-colors p-2"
                   onClick={handleShoppingCartClick}
                 >
                   <ShoppingCart className="w-6 h-6" />
-                </button>
+                </Button>
               )}
 
               {isLoggedIn() ? (
                 <div className="relative" ref={dropdownRef}>
-                  <button
+                  <Button unstyled
                     className="hidden md:flex items-center space-x-3 text-white hover:text-amber-400 transition-colors p-2"
                     onClick={handleProfileClick}
                   >
@@ -343,9 +344,9 @@ export default function Navbar() {
                         </span>
                       </span>
                     </div>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button unstyled
                     className="md:hidden flex items-center space-x-2 text-white hover:text-amber-400 transition-colors p-1"
                     onClick={handleProfileClick}
                   >
@@ -365,7 +366,7 @@ export default function Navbar() {
                       </span>
                     </div>
                     {renderUserAvatar()}
-                  </button>
+                  </Button>
 
                   {profileDropdownOpen && (
                     <div className="absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
@@ -411,7 +412,7 @@ export default function Navbar() {
                       </div>
 
                       <div className="p-2">
-                        <button
+                        <Button unstyled
                           onClick={handleViewProfile}
                           className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-brand-50 rounded-lg transition-colors group"
                         >
@@ -421,10 +422,10 @@ export default function Navbar() {
                           <span className="font-medium text-gray-700 group-hover:text-brand-600 transition-colors">
                             Lihat Profil
                           </span>
-                        </button>
+                        </Button>
 
                         {isLoggedIn() && getUserRole() === "user" && (
-                          <button
+                          <Button unstyled
                             onClick={handleViewLikedEvents}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-pink-50 rounded-lg transition-colors group"
                           >
@@ -434,11 +435,11 @@ export default function Navbar() {
                             <span className="font-medium text-gray-700 group-hover:text-pink-600 transition-colors">
                               Event yang Disukai
                             </span>
-                          </button>
+                          </Button>
                         )}
 
                         {getUserRole() === "user" && (
-                          <button
+                          <Button unstyled
                             onClick={handleViewTransactionHistory}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-green-50 rounded-lg transition-colors group"
                           >
@@ -448,12 +449,12 @@ export default function Navbar() {
                             <span className="font-medium text-gray-700 group-hover:text-green-600 transition-colors">
                               Riwayat Transaksi
                             </span>
-                          </button>
+                          </Button>
                         )}
 
                         {(getUserRole() === "user" ||
                           getUserRole() === "organizer") && (
-                          <button
+                          <Button unstyled
                             onClick={handleViewReportIssue}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-yellow-50 rounded-lg transition-colors group"
                           >
@@ -463,11 +464,11 @@ export default function Navbar() {
                             <span className="font-medium text-gray-700 group-hover:text-yellow-600 transition-colors">
                               Laporkan Masalah
                             </span>
-                          </button>
+                          </Button>
                         )}
 
                         <div className="border-t border-gray-200 mt-2 pt-2">
-                          <button
+                          <Button unstyled
                             onClick={handleLogout}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-red-50 rounded-lg transition-colors group"
                           >
@@ -477,7 +478,7 @@ export default function Navbar() {
                             <span className="font-medium text-red-600 group-hover:text-red-700 transition-colors">
                               Keluar
                             </span>
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -485,9 +486,9 @@ export default function Navbar() {
                 </div>
               ) : (
                 <Link to="/login">
-                  <button className="rounded-lg bg-navigation-dark px-5 py-2.5 font-bold text-white shadow-md transition-all hover:bg-white hover:text-navigation-dark hover:shadow-lg">
+                  <Button unstyled className="rounded-lg bg-navigation-dark px-5 py-2.5 font-bold text-white shadow-md transition-all hover:bg-white hover:text-navigation-dark hover:shadow-lg">
                     Masuk
-                  </button>
+                  </Button>
                 </Link>
               )}
             </div>
@@ -612,7 +613,7 @@ export default function Navbar() {
                   </NavLink>
 
                   <div className="relative" ref={verificationRef}>
-                    <button
+                    <Button unstyled
                       className={getVerificationNavClass(
                         isVerificationActive()
                       )}
@@ -633,11 +634,11 @@ export default function Navbar() {
                             : "scale-x-0 group-hover:scale-x-100"
                         }`}
                       />
-                    </button>
+                    </Button>
 
                     {verificationDropdownOpen && (
                       <div className="absolute right-0 top-full w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
-                        <button
+                        <Button unstyled
                           onClick={handleVerificationUser}
                           className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-brand-50 transition-colors group ${
                             location.pathname === "/verifikasiUser"
@@ -663,9 +664,9 @@ export default function Navbar() {
                           {location.pathname === "/verifikasiUser" && (
                             <CheckCircle className="w-4 h-4 text-green-500" />
                           )}
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button unstyled
                           onClick={handleVerificationEvent}
                           className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-brand-50 transition-colors group ${
                             location.pathname === "/verifikasi-event"
@@ -693,7 +694,7 @@ export default function Navbar() {
                           {location.pathname === "/verifikasi-event" && (
                             <CheckCircle className="w-4 h-4 text-green-500" />
                           )}
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -738,12 +739,12 @@ export default function Navbar() {
                 <Ticket className="w-8 h-8" />
                 <span className="text-xl font-bold">TIKERIA</span>
               </div>
-              <button
+              <Button unstyled
                 onClick={() => setMobileMenuIsOpen(false)}
                 className="text-white hover:text-amber-400 transition-colors"
               >
                 <X className="w-6 h-6" />
-              </button>
+              </Button>
             </div>
 
             {isLoggedIn() ? (
@@ -767,12 +768,12 @@ export default function Navbar() {
               <div className="text-center py-4">
                 <p className="text-brand-100 mb-3">Belum login?</p>
                 <Link to="/login">
-                  <button
+                  <Button unstyled
                     className="bg-white text-brand-600 px-6 py-2 rounded-lg font-bold hover:bg-brand-50 transition-all"
                     onClick={() => setMobileMenuIsOpen(false)}
                   >
                     Masuk Sekarang
-                  </button>
+                  </Button>
                 </Link>
               </div>
             )}
@@ -945,13 +946,13 @@ export default function Navbar() {
             )}
 
             {isLoggedIn() && (
-              <button
+              <Button unstyled
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-3 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all mt-4 hover:scale-[1.02]"
               >
                 <LogOut size={20} />
                 <span className="font-semibold">Keluar</span>
-              </button>
+              </Button>
             )}
           </div>
         </div>

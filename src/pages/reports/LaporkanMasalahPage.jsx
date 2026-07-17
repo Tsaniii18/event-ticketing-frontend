@@ -24,6 +24,7 @@ import {
   MAX_IMAGE_SIZE,
   PAGE_CONTAINER_VARIANTS as containerVariants,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function LaporkanMasalahPage() {
   const navigate = useNavigate();
@@ -179,12 +180,12 @@ export default function LaporkanMasalahPage() {
                 <h2 className="text-xl font-bold text-gray-900">
                   Detail Laporan
                 </h2>
-                <button
+                <Button unstyled
                   onClick={() => setDetailModal({ open: false, data: null })}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <X size={20} />
-                </button>
+                </Button>
               </div>
 
               <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-140px)]">
@@ -243,14 +244,14 @@ export default function LaporkanMasalahPage() {
               </div>
 
               <div className="flex justify-end p-6 border-t border-gray-100 bg-gray-50">
-                <Motion.button
+                <Button
                   onClick={() => setDetailModal({ open: false, data: null })}
-                  className="ui-button ui-button-primary px-5"
+                  variant="primary" className="px-5"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Tutup
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
           </Motion.div>
@@ -285,7 +286,7 @@ export default function LaporkanMasalahPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="flex border-b border-gray-200 mb-8"
             >
-              <Motion.button
+              <Button unstyled
                 onClick={() => setActiveTab("buat")}
                 className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "buat"
@@ -297,8 +298,8 @@ export default function LaporkanMasalahPage() {
               >
                 <PenLine size={18} />
                 Buat Laporan
-              </Motion.button>
-              <Motion.button
+              </Button>
+              <Button unstyled
                 onClick={() => setActiveTab("riwayat")}
                 className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "riwayat"
@@ -315,7 +316,7 @@ export default function LaporkanMasalahPage() {
                     {reports.length}
                   </span>
                 )}
-              </Motion.button>
+              </Button>
             </Motion.div>
 
             {activeTab === "buat" && (
@@ -423,7 +424,7 @@ export default function LaporkanMasalahPage() {
                             alt="Preview"
                             className="max-w-xs max-h-48 rounded-lg object-cover border border-gray-200"
                           />
-                          <Motion.button
+                          <Button unstyled
                             type="button"
                             onClick={removeImage}
                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
@@ -431,7 +432,7 @@ export default function LaporkanMasalahPage() {
                             whileTap={{ scale: 0.9 }}
                           >
                             <X size={16} />
-                          </Motion.button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -442,20 +443,20 @@ export default function LaporkanMasalahPage() {
                   variants={itemVariants}
                   className="flex gap-4 pt-6 border-t border-gray-200"
                 >
-                  <Motion.button
+                  <Button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="ui-button ui-button-secondary flex-1 px-6 py-3"
+                    variant="secondary" className="flex-1 px-6 py-3"
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     Batal
-                  </Motion.button>
-                  <Motion.button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={submitReport}
                     disabled={loading}
-                    className="ui-button ui-button-primary flex-1 px-6 py-3 flex items-center justify-center gap-2"
+                    variant="primary" className="flex-1 px-6 py-3 flex items-center justify-center gap-2"
                     whileHover={{
                       scale: loading ? 1 : 1.02,
                       y: loading ? 0 : -1,
@@ -473,7 +474,7 @@ export default function LaporkanMasalahPage() {
                         Kirim Laporan
                       </>
                     )}
-                  </Motion.button>
+                  </Button>
                 </Motion.div>
               </Motion.div>
             )}
@@ -510,14 +511,14 @@ export default function LaporkanMasalahPage() {
                     <p className="ui-state-description mb-4">
                       Laporan yang Anda kirimkan akan muncul di sini
                     </p>
-                    <Motion.button
+                    <Button
                       onClick={() => setActiveTab("buat")}
-                      className="ui-button ui-button-primary px-5"
+                      variant="primary" className="px-5"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       Buat Laporan Pertama
-                    </Motion.button>
+                    </Button>
                   </Motion.div>
                 ) : (
                   <div className="space-y-4">
@@ -548,15 +549,15 @@ export default function LaporkanMasalahPage() {
                           </div>
 
                           <div className="flex gap-2">
-                            <Motion.button
+                            <Button
                               onClick={() => setDetailModal({ open: true, data: report })}
-                              className="ui-button ui-button-primary min-w-30 justify-center"
+                              variant="primary" className="min-w-30 justify-center"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
                               <Eye size={16} />
                               Detail
-                            </Motion.button>
+                            </Button>
                           </div>
                         </div>
                       </Motion.div>
@@ -573,14 +574,14 @@ export default function LaporkanMasalahPage() {
                     <div>
                       Total <span className="font-medium">{reports.length}</span> laporan
                     </div>
-                    <Motion.button
+                    <Button unstyled
                       onClick={() => setActiveTab("buat")}
                       className="text-brand-600 hover:text-brand-800 font-medium"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       + Buat Laporan Baru
-                    </Motion.button>
+                    </Button>
                   </Motion.div>
                 )}
               </Motion.div>

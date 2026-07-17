@@ -12,6 +12,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
+import Button from "../../components/common/Button";
 import { authAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
@@ -474,7 +475,7 @@ export default function DaftarEOPage() {
                           placeholder="Minimal 6 karakter"
                           required
                         />
-                        <button
+                        <Button unstyled
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -484,7 +485,7 @@ export default function DaftarEOPage() {
                           ) : (
                             <Eye size={18} />
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -501,7 +502,7 @@ export default function DaftarEOPage() {
                           placeholder="Konfirmasi Password"
                           required
                         />
-                        <button
+                        <Button unstyled
                           type="button"
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
@@ -513,7 +514,7 @@ export default function DaftarEOPage() {
                           ) : (
                             <Eye size={18} />
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -571,25 +572,18 @@ export default function DaftarEOPage() {
                 </Motion.div>
 
                 <Motion.div variants={itemVariants} className="pt-4">
-                  <Motion.button
+                  <Button
                     type="submit"
-                    disabled={loading}
-                    className="ui-button ui-button-primary w-full rounded-xl py-3 font-semibold shadow-lg"
+                    loading={loading}
+                    loadingLabel="Mendaftarkan..."
+                    size="lg"
+                    fullWidth
                     whileHover={{ scale: loading ? 1 : 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Mendaftarkan...
-                      </>
-                    ) : (
-                      <>
-                        Daftar Sebagai EO
-                        <ArrowRight size={18} />
-                      </>
-                    )}
-                  </Motion.button>
+                    Daftar Sebagai EO
+                    <ArrowRight size={18} />
+                  </Button>
                 </Motion.div>
               </form>
 
@@ -637,12 +631,12 @@ export default function DaftarEOPage() {
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Preview KTP</h3>
-              <button
+              <Button unstyled
                 onClick={() => setIsModalOpen(false)}
                 className="ui-icon-button"
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <img
               src={ktpPreview}

@@ -1,5 +1,6 @@
 import { Eye, Minus, Plus, ShoppingCart } from "lucide-react";
 import { motion as Motion } from "framer-motion";
+import Button from "../common/Button";
 
 export function TicketItem({
   ticket,
@@ -72,17 +73,17 @@ export function TicketItem({
       </div>
 
       <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
-        <button
+        <Button
           type="button"
           onClick={(event) => {
             event.stopPropagation();
             onViewDetail(ticket);
           }}
-          className="ui-button w-full bg-gray-100 text-gray-700 hover:bg-gray-200 sm:w-auto sm:text-base"
+          variant="muted" className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200 sm:w-auto sm:text-base"
         >
           <Eye size={16} />
           Lihat Detail
-        </button>
+        </Button>
 
         {showControls && (
           <div className="flex w-full items-center justify-between gap-4 sm:w-auto">
@@ -93,7 +94,7 @@ export function TicketItem({
             )}
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-300 p-1 shadow-sm">
-                <button
+                <Button unstyled
                   type="button"
                   onClick={() => onUpdateQty(index, -1)}
                   disabled={ticket.qty === 0 || isEventEnded}
@@ -104,11 +105,11 @@ export function TicketItem({
                   } border border-transparent`}
                 >
                   <Minus size={18} className="sm:w-4 sm:h-4" />
-                </button>
+                </Button>
                 <span className="w-10 sm:w-8 text-center font-bold text-lg text-gray-900">
                   {ticket.qty}
                 </span>
-                <button
+                <Button unstyled
                   type="button"
                   onClick={() => onUpdateQty(index, 1)}
                   className={`w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg transition-all duration-200 ${
@@ -125,7 +126,7 @@ export function TicketItem({
                   }
                 >
                   <Plus size={18} className="sm:w-4 sm:h-4" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -187,15 +188,17 @@ export function CartSummary({
         </div>
       </div>
 
-      <Motion.button
+      <Button
         onClick={onAddToCart}
-        className="ui-button ui-button-primary w-full rounded-xl bg-linear-to-r from-brand-600 to-brand-700 py-3 font-semibold shadow-lg transition-all duration-300 hover:from-brand-700 hover:to-brand-800 hover:shadow-xl active:scale-[0.98] sm:py-4 sm:text-lg"
+        size="lg"
+        fullWidth
+        className="bg-linear-to-r from-brand-600 to-brand-700 shadow-lg hover:from-brand-700 hover:to-brand-800 hover:shadow-xl sm:text-lg"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
         Masukkan ke Keranjang
-      </Motion.button>
+      </Button>
     </Motion.div>
   );
 }

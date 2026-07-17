@@ -6,6 +6,7 @@ import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
 import { Search, Filter, Calendar, X, Eye, CheckCircle, XCircle, RefreshCw, FileText, User, MapPin, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import Button from "../../components/common/Button";
 
 export default function VerifikasiEventPage() {
   const navigate = useNavigate();
@@ -152,7 +153,7 @@ export default function VerifikasiEventPage() {
 
               <div className="flex items-center gap-3 mt-4 md:mt-0">
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 font-medium"
                     whileHover={{ scale: 1.05 }}
@@ -160,18 +161,18 @@ export default function VerifikasiEventPage() {
                   >
                     <X size={16} />
                     Hapus Filter
-                  </Motion.button>
+                  </Button>
                 )}
 
-                <Motion.button
+                <Button
                   onClick={handleRefresh}
-                  className="ui-button ui-button-primary"
+                  variant="primary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <RefreshCw size={18} />
                   Refresh
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
 
@@ -184,15 +185,15 @@ export default function VerifikasiEventPage() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                 <h3 className="ui-heading-2">Filter & Pencarian</h3>
 
-                <Motion.button
+                <Button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="ui-button ui-button-secondary"
+                  variant="secondary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Filter size={18} />
                   {showFilters ? "Sembunyikan Filter" : "Tampilkan Filter"}
-                </Motion.button>
+                </Button>
               </div>
 
               <AnimatePresence>
@@ -284,14 +285,14 @@ export default function VerifikasiEventPage() {
                   }
                 </p>
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button
                     onClick={clearFilters}
-                    className="ui-button ui-button-primary px-5"
+                    variant="primary" className="px-5"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Hapus Semua Filter
-                  </Motion.button>
+                  </Button>
                 )}
               </Motion.div>
             ) : (
@@ -337,7 +338,7 @@ export default function VerifikasiEventPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row lg:flex-col gap-2">
-                        <Motion.button
+                        <Button unstyled
                           onClick={() => handleViewDetails(event)}
                           className="flex items-center gap-2 bg-brand-50 hover:bg-brand-100 text-brand-700 px-4 py-2.5 rounded-lg transition-colors font-medium min-w-30 justify-center"
                           whileHover={{ scale: 1.05 }}
@@ -345,16 +346,16 @@ export default function VerifikasiEventPage() {
                         >
                           <Eye size={16} />
                           Detail
-                        </Motion.button>
-                        <Motion.button
+                        </Button>
+                        <Button
                           onClick={() => setSelectedEvent(event)}
-                          className="ui-button min-w-30 bg-success-50 text-success-700 hover:bg-success-100"
+                          variant="soft" tone="success" className="min-w-30 bg-success-50 text-success-700 hover:bg-success-100"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <CheckCircle size={16} />
                           Verifikasi
-                        </Motion.button>
+                        </Button>
                       </div>
                     </div>
                   </Motion.div>
@@ -373,14 +374,14 @@ export default function VerifikasiEventPage() {
                   <span className="font-medium">{events.length}</span> event
                 </div>
                 {hasActiveFilters && (
-                  <Motion.button
+                  <Button unstyled
                     onClick={clearFilters}
                     className="text-brand-600 hover:text-brand-800 font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Tampilkan Semua Event
-                  </Motion.button>
+                  </Button>
                 )}
               </Motion.div>
             )}
@@ -413,7 +414,7 @@ export default function VerifikasiEventPage() {
                   >
                     Verifikasi Event
                   </Motion.h3>
-                  <Motion.button
+                  <Button unstyled
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ scale: 1.1, rotate: 90 }}
@@ -425,7 +426,7 @@ export default function VerifikasiEventPage() {
                     className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
                   >
                     <X size={20} />
-                  </Motion.button>
+                  </Button>
                 </div>
 
                 <div className="space-y-6">
@@ -556,35 +557,35 @@ export default function VerifikasiEventPage() {
                   transition={{ delay: 0.8 }}
                   className="flex gap-3 pt-6 mt-6 border-t border-gray-200"
                 >
-                  <Motion.button
+                  <Button
                     onClick={() => {
                       setSelectedEvent(null);
                       setApprovalComment("");
                     }}
-                    className="ui-button ui-button-secondary flex-1 px-4 py-3"
+                    variant="secondary" className="flex-1 px-4 py-3"
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     Batal
-                  </Motion.button>
-                  <Motion.button
+                  </Button>
+                  <Button
                     onClick={() => handleVerifyEvent(selectedEvent.event_id, "rejected")}
-                    className="ui-button ui-button-danger flex-1 px-4 py-3"
+                    variant="danger" className="flex-1 px-4 py-3"
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <XCircle size={18} />
                     Tolak Event
-                  </Motion.button>
-                  <Motion.button
+                  </Button>
+                  <Button
                     onClick={() => handleVerifyEvent(selectedEvent.event_id, "approved")}
-                    className="ui-button ui-button-success flex-1 px-4 py-3"
+                    variant="success" className="flex-1 px-4 py-3"
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <CheckCircle size={18} />
                     Setujui Event
-                  </Motion.button>
+                  </Button>
                 </Motion.div>
               </div>
             </Motion.div>

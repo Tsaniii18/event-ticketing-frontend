@@ -34,6 +34,7 @@ import {
   groupTicketsByCategory,
   TRANSACTION_STATUS_CONFIG as STATUS_CONFIG,
 } from "../../utils";
+import Button from "../../components/common/Button";
 
 export default function RiwayatTransaksi() {
   const navigate = useNavigate();
@@ -251,15 +252,15 @@ export default function RiwayatTransaksi() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Terjadi Kesalahan</h3>
             <p className="text-gray-600 mb-6 text-sm">{error}</p>
-            <Motion.button
+            <Button
               onClick={fetchTransactions}
-              className="ui-button ui-button-primary w-full rounded-xl py-3"
+              variant="primary" className="w-full rounded-xl py-3"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <RefreshCw size={16} className="inline mr-2" />
               Coba Lagi
-            </Motion.button>
+            </Button>
           </Motion.div>
         </div>
       </div>
@@ -281,15 +282,15 @@ export default function RiwayatTransaksi() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Belum Ada Transaksi</h3>
             <p className="text-gray-600 mb-6 text-sm">Anda belum memiliki riwayat pembelian tiket</p>
-            <Motion.button
+            <Button
               onClick={() => navigate('/cariEvent')}
-              className="ui-button ui-button-primary w-full rounded-xl py-3"
+              variant="primary" className="w-full rounded-xl py-3"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <Sparkles size={16} className="inline mr-2" />
               Jelajahi Event
-            </Motion.button>
+            </Button>
           </Motion.div>
         </div>
       </div>
@@ -332,15 +333,15 @@ export default function RiwayatTransaksi() {
                 </p>
               </div>
 
-              <Motion.button
+              <Button
                 onClick={fetchTransactions}
-                className="ui-button ui-button-primary px-3 py-2"
+                variant="primary" className="px-3 py-2"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
                 <span className="hidden sm:inline">Refresh</span>
-              </Motion.button>
+              </Button>
             </Motion.div>
 
             <Motion.div
@@ -357,7 +358,7 @@ export default function RiwayatTransaksi() {
                   { key: "failed", label: "Gagal", count: statusStats.failed },
                   { key: "expired", label: "Kadaluarsa", count: statusStats.expired }
                 ].filter(tab => tab.key === "all" || tab.count > 0).map((tab) => (
-                  <Motion.button
+                  <Button unstyled
                     key={tab.key}
                     onClick={() => setSelectedStatus(tab.key)}
                     className={`
@@ -380,7 +381,7 @@ export default function RiwayatTransaksi() {
                     }`}>
                       {tab.count}
                     </span>
-                  </Motion.button>
+                  </Button>
                 ))}
               </div>
 
@@ -395,12 +396,12 @@ export default function RiwayatTransaksi() {
                     className="ui-input py-2.5 pl-9 pr-9 text-sm"
                   />
                   {searchTerm && (
-                    <button
+                    <Button unstyled
                       onClick={() => setSearchTerm("")}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       <X size={16} />
-                    </button>
+                    </Button>
                   )}
                 </div>
 
@@ -415,13 +416,13 @@ export default function RiwayatTransaksi() {
                     <option value="status">Status</option>
                   </select>
 
-                  <Motion.button
+                  <Button
                     onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                    className="ui-button ui-button-muted px-3"
+                    variant="muted" className="px-3"
                     whileTap={{ scale: 0.95 }}
                   >
                     <ArrowUpDown size={18} className={`text-gray-600 ${sortOrder === "desc" ? "rotate-180" : ""}`} />
-                  </Motion.button>
+                  </Button>
                 </div>
               </div>
 
@@ -435,18 +436,18 @@ export default function RiwayatTransaksi() {
                   {selectedStatus !== "all" && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs">
                       {STATUS_CONFIG[selectedStatus]?.label}
-                      <button onClick={() => setSelectedStatus("all")}><X size={12} /></button>
+                      <Button unstyled onClick={() => setSelectedStatus("all")}><X size={12} /></Button>
                     </span>
                   )}
                   {searchTerm && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">
                       "{searchTerm.length > 10 ? searchTerm.slice(0, 10) + '...' : searchTerm}"
-                      <button onClick={() => setSearchTerm("")}><X size={12} /></button>
+                      <Button unstyled onClick={() => setSearchTerm("")}><X size={12} /></Button>
                     </span>
                   )}
-                  <button onClick={clearFilters} className="text-xs text-red-600 hover:text-red-700 font-medium ml-auto">
+                  <Button unstyled onClick={clearFilters} className="text-xs text-red-600 hover:text-red-700 font-medium ml-auto">
                     Reset
-                  </button>
+                  </Button>
                 </Motion.div>
               )}
             </Motion.div>
@@ -474,13 +475,13 @@ export default function RiwayatTransaksi() {
                   <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Tidak Ada Transaksi</h3>
                   <p className="text-gray-600 text-sm mb-4">Tidak ada transaksi yang sesuai dengan filter</p>
-                  <Motion.button
+                  <Button
                     onClick={clearFilters}
-                    className="ui-button ui-button-primary py-2"
+                    variant="primary" className="py-2"
                     whileTap={{ scale: 0.98 }}
                   >
                     Reset Filter
-                  </Motion.button>
+                  </Button>
                 </Motion.div>
               ) : (
                 filteredTransactions.map((transaction, index) => (
@@ -554,16 +555,18 @@ export default function RiwayatTransaksi() {
                                     <p className="text-amber-600 text-xs">Selesaikan sebelum waktu habis</p>
                                   </div>
                                 </div>
-                                <Motion.a
+                                <Button
+                                  as={Motion.a}
                                   href={transaction.linkPayment}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="ui-button ui-button-warning py-2"
+                                  variant="warning"
+                                  className="py-2"
                                   whileTap={{ scale: 0.95 }}
                                 >
                                   <ExternalLink size={14} />
                                   Bayar
-                                </Motion.a>
+                                </Button>
                               </div>
                             )}
 
@@ -624,14 +627,14 @@ export default function RiwayatTransaksi() {
                                             </div>
 
                                             {detail.tickets && detail.tickets.length > 0 && (
-                                              <Motion.button
+                                              <Button unstyled
                                                 onClick={() => handleShowDetail(transaction, event, detail)}
                                                 className="flex items-center gap-1 px-2.5 py-1.5 bg-brand-600 text-white rounded text-xs font-medium hover:bg-brand-700 self-start"
                                                 whileTap={{ scale: 0.95 }}
                                               >
                                                 <Info size={11} />
                                                 Detail
-                                              </Motion.button>
+                                              </Button>
                                             )}
                                           </div>
 
@@ -693,13 +696,13 @@ export default function RiwayatTransaksi() {
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2">{selectedTicket.event.eventName}</h3>
                     <p className="text-gray-600 text-sm mt-1">{selectedTicket.detail.type}</p>
                   </div>
-                  <Motion.button
+                  <Button unstyled
                     onClick={handleCloseDetail}
                     className="text-gray-500 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 transition-colors shrink-0"
                     whileTap={{ scale: 0.9 }}
                   >
                     <X size={20} />
-                  </Motion.button>
+                  </Button>
                 </div>
               </div>
 
@@ -788,13 +791,13 @@ export default function RiwayatTransaksi() {
                   </div>
                 )}
 
-                <Motion.button
+                <Button
                   onClick={handleCloseDetail}
-                  className="ui-button ui-button-primary w-full py-3"
+                  variant="primary" className="w-full py-3"
                   whileTap={{ scale: 0.98 }}
                 >
                   Tutup
-                </Motion.button>
+                </Button>
               </div>
             </Motion.div>
           </Motion.div>

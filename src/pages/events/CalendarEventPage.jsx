@@ -36,6 +36,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import Button from "../../components/common/Button";
 
 export default function CalendarEventPage() {
   const navigate = useNavigate();
@@ -398,7 +399,7 @@ export default function CalendarEventPage() {
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
                   <div className="flex bg-gray-100 rounded-lg p-1">
-                    <button
+                    <Button unstyled
                       onClick={() => setViewMode("calendar")}
                       className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all font-medium text-sm sm:text-base ${
                         viewMode === "calendar"
@@ -408,8 +409,8 @@ export default function CalendarEventPage() {
                     >
                       <Calendar size={16} className="sm:w-4 sm:h-4" />
                       <span className="hidden xs:inline">Kalender</span>
-                    </button>
-                    <button
+                    </Button>
+                    <Button unstyled
                       onClick={() => setViewMode("list")}
                       className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all font-medium text-sm sm:text-base ${
                         viewMode === "list"
@@ -419,32 +420,32 @@ export default function CalendarEventPage() {
                     >
                       <List size={16} className="sm:w-4 sm:h-4" />
                       <span className="hidden xs:inline">Daftar</span>
-                    </button>
+                    </Button>
                   </div>
 
                   {hasActiveFilters && (
-                    <button
+                    <Button unstyled
                       onClick={clearFilters}
                       className="flex items-center gap-1 text-xs sm:text-sm text-red-600 hover:text-red-800 font-medium"
                     >
                       <X size={14} />
                       <span className="hidden sm:inline">Hapus Filter</span>
-                    </button>
+                    </Button>
                   )}
 
-                  <button
+                  <Button
                     onClick={() => {
                       eventAPI.getApprovedEvents().then((response) => setEvents(response.data || []));
                       fetchEventCategories();
                     }}
-                    className="ui-button ui-button-primary px-3 py-1.5 sm:px-4 sm:py-2.5 sm:text-base"
+                    variant="primary" className="px-3 py-1.5 sm:px-4 sm:py-2.5 sm:text-base"
                   >
                     <RefreshCw
                       size={16}
                       className={`sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`}
                     />
                     <span className="hidden sm:inline">Refresh</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Motion.div>
@@ -460,7 +461,7 @@ export default function CalendarEventPage() {
                   Filter & Pencarian
                 </h3>
 
-                <button
+                <Button unstyled
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center gap-1.5 sm:gap-2 text-brand-600 hover:text-brand-800 font-medium text-sm sm:text-base"
                 >
@@ -469,7 +470,7 @@ export default function CalendarEventPage() {
                     {showFilters ? "Sembunyikan" : "Tampilkan"} Filter
                   </span>
                   <span className="sm:hidden">Filter</span>
-                </button>
+                </Button>
               </div>
 
               <div className="relative mb-3 sm:mb-4">
@@ -536,13 +537,13 @@ export default function CalendarEventPage() {
                       </div>
 
                       <div className="flex items-end sm:col-span-2 lg:col-span-1">
-                        <button
+                        <Button
                           onClick={goToToday}
-                          className="ui-button ui-button-muted w-full sm:py-3 sm:text-base"
+                          variant="muted" className="w-full sm:py-3 sm:text-base"
                         >
                           <Calendar size={16} className="sm:w-4 sm:h-4" />
                           Ke Hari Ini
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -574,26 +575,26 @@ export default function CalendarEventPage() {
             ) : viewMode === "calendar" ? (
               <div>
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <button
+                  <Button unstyled
                     onClick={goToPreviousMonth}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
                     <span className="hidden sm:inline text-sm">Sebelumnya</span>
-                  </button>
+                  </Button>
 
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                     {monthNames[currentDate.getMonth()]}{" "}
                     {currentDate.getFullYear()}
                   </h2>
 
-                  <button
+                  <Button unstyled
                     onClick={goToNextMonth}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <span className="hidden sm:inline text-sm">Selanjutnya</span>
                     <ChevronRight size={18} className="sm:w-5 sm:h-5" />
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -747,26 +748,26 @@ export default function CalendarEventPage() {
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <button
+                  <Button unstyled
                     onClick={goToPreviousMonth}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
                     <span className="hidden sm:inline text-sm">Sebelumnya</span>
-                  </button>
+                  </Button>
 
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                     {monthNames[currentDate.getMonth()]}{" "}
                     {currentDate.getFullYear()}
                   </h2>
 
-                  <button
+                  <Button unstyled
                     onClick={goToNextMonth}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <span className="hidden sm:inline text-sm">Selanjutnya</span>
                     <ChevronRight size={18} className="sm:w-5 sm:h-5" />
-                  </button>
+                  </Button>
                 </div>
 
                 {getEventsForMonth.length === 0 ? (
@@ -816,7 +817,7 @@ export default function CalendarEventPage() {
               </h4>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 {parentCategoriesForLegend.slice(0, 8).map((category) => (
-                  <button
+                  <Button unstyled
                     key={category}
                     onClick={() =>
                       setCategoryFilter(
@@ -835,9 +836,9 @@ export default function CalendarEventPage() {
                     <span className="truncate max-w-20 sm:max-w-none">
                       {category}
                     </span>
-                  </button>
+                  </Button>
                 ))}
-                <button
+                <Button unstyled
                   onClick={() =>
                     setStatusFilter(
                       statusFilter === "ended" ? "" : "ended"
@@ -851,14 +852,14 @@ export default function CalendarEventPage() {
                 >
                   <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400" />
                   <span>Berakhir</span>
-                </button>
+                </Button>
                 {parentCategoriesForLegend.length > 8 && (
-                  <button
+                  <Button unstyled
                     onClick={() => setShowFilters(true)}
                     className="text-xs sm:text-sm text-brand-600 hover:text-brand-800 font-medium"
                   >
                     +{parentCategoriesForLegend.length - 8} lainnya
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -921,12 +922,12 @@ function MobileEventModal({
                   {events.length} event ditemukan
                 </p>
               </div>
-              <button
+              <Button unstyled
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
 
             <div className="overflow-y-auto max-h-[calc(85vh-100px)] p-4">
@@ -1013,7 +1014,7 @@ function MobileEventCard({
                 {event.status === "ended" ? "Berakhir" : parentCategory}
               </span>
             </div>
-            <button
+            <Button unstyled
               onClick={onLike}
               disabled={!canLike}
               className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
@@ -1023,7 +1024,7 @@ function MobileEventCard({
               } ${!canLike ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Heart className={`w-3.5 h-3.5 ${isLiked ? "fill-current" : ""}`} />
-            </button>
+            </Button>
           </div>
 
           <h4 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1">
@@ -1107,7 +1108,7 @@ function EventCard({
                 >
                   {event.status === "ended" ? "Berakhir" : parentCategory}
                 </span>
-                <button
+                <Button unstyled
                   onClick={(e) => {
                     e.stopPropagation();
                     onLike(e);
@@ -1120,7 +1121,7 @@ function EventCard({
                   } ${!canLike ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <Heart className={`w-3.5 h-3.5 ${isLiked ? "fill-current" : ""}`} />
-                </button>
+                </Button>
               </div>
 
               <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight mb-1.5">
@@ -1212,7 +1213,7 @@ function EventCard({
                 {event.name}
               </h3>
             </div>
-            <button
+            <Button unstyled
               onClick={(e) => {
                 e.stopPropagation();
                 onLike(e);
@@ -1225,7 +1226,7 @@ function EventCard({
               } ${!canLike ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
@@ -1280,15 +1281,15 @@ function EventCard({
                   <span className="font-medium">{formatNumber(event.total_tickets_sold)}</span>
                 </span>
               )}
-              <button
-                className="ui-button ui-button-primary py-2"
+              <Button
+                variant="primary" className="py-2"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClick();
                 }}
               >
                 Lihat Detail
-              </button>
+              </Button>
             </div>
           </div>
         </div>
