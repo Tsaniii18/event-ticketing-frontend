@@ -1,7 +1,11 @@
+import LoadingState from "./LoadingState";
+
 export default function PageLoader() {
   return (
-    <div className="grid min-h-screen place-items-center bg-app text-gray-600">
-      <span className="ui-spinner" aria-label="Memuat halaman" />
-    </div>
+    <LoadingState
+      variant="page"
+      label="Memuat halaman..."
+      description="Menyiapkan pengalaman terbaik untuk Anda"
+    />
   );
 }

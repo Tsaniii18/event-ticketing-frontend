@@ -36,6 +36,8 @@ import {
 } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function RiwayatTransaksi() {
   const navigate = useNavigate();
@@ -46,7 +48,11 @@ export default function RiwayatTransaksi() {
   const [selectedTicket, setSelectedTicket] = useState(null);
 
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [error, setError] = useState(null);
 
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -56,7 +62,7 @@ export default function RiwayatTransaksi() {
 
   const fetchTransactions = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       setError(null);
       const response = await transactionAPI.getTransactionHistory();
 
@@ -105,9 +111,9 @@ export default function RiwayatTransaksi() {
       setError(err.response?.data?.error || "Gagal mengambil data transaksi");
       showNotification("Gagal mengambil data transaksi", "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     fetchTransactions();
@@ -224,16 +230,12 @@ export default function RiwayatTransaksi() {
     return (
       <div className="ui-page mt-15">
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="ui-spinner mx-auto size-16"
-            />
-            <p className="mt-6 text-gray-600 font-medium">Memuat riwayat transaksi...</p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-[60vh]"
+          label="Memuat riwayat transaksi..."
+          description="Mengumpulkan detail pembelian dan status pembayaran"
+        />
       </div>
     );
   }
@@ -340,7 +342,7 @@ export default function RiwayatTransaksi() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                <RefreshCw size={16} />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
             </Motion.div>

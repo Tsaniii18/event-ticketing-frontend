@@ -19,6 +19,8 @@ import { Search, Filter, Calendar, MapPin, X, RefreshCw, Heart, ChevronLeft, Che
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function CariEvent() {
   const navigate = useNavigate();
@@ -28,7 +30,11 @@ export default function CariEvent() {
   const [events, setEvents] = useState([]);
   const [eventCategories, setEventCategories] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [showFilters, setShowFilters] = useState(false);
   const [likedEvents, setLikedEvents] = useState(new Set());
   const { user: sessionUser, isAuthenticated: isLoggedIn } = useSessionUser();
@@ -70,7 +76,7 @@ export default function CariEvent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        startLoading();
         const [eventsResponse, categoriesResponse] = await Promise.all([
           eventAPI.getApprovedEvents(),
           eventAPI.getEventCategories()
@@ -85,12 +91,12 @@ export default function CariEvent() {
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
+        stopLoading();
       }
     };
 
     fetchData();
-  }, []);
+  }, [startLoading, stopLoading]);
 
   useEffect(() => {
     if (searchQuery && searchQuery !== filters.keyword) {
@@ -504,12 +510,12 @@ export default function CariEvent() {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-16 sm:py-20">
-                <div className="flex flex-col items-center gap-3 sm:gap-4">
-                  <div className="ui-spinner size-10 sm:size-12"></div>
-                  <p className="text-gray-600 text-sm sm:text-base">Memuat event...</p>
-                </div>
-              </div>
+              <LoadingState
+                variant="compact"
+                className="py-16 sm:py-20"
+                label="Memuat event..."
+                description="Mencari event yang sesuai dengan filter Anda"
+              />
             ) : filteredEvents.length === 0 ? (
               <div className="text-center py-16 sm:py-20">
                 <div className="max-w-md mx-auto px-4">

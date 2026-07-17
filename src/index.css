@@ -224,10 +224,6 @@
     @apply border-gray-200 bg-gray-100 text-gray-700 shadow-none hover:-translate-y-0.5 hover:bg-gray-200;
   }
 
-  .ui-button-spinner {
-    @apply size-4 animate-spin rounded-full border-2 border-current border-t-transparent;
-  }
-
   .ui-icon-button {
     @apply inline-flex size-10 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50;
   }
@@ -310,10 +306,6 @@
 
   .ui-feedback-icon {
     @apply mx-auto mb-4 flex size-16 items-center justify-center rounded-full;
-  }
-
-  .ui-spinner {
-    @apply size-12 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600;
   }
 
   .ui-table-shell {

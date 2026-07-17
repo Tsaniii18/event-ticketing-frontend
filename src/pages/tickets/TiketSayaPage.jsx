@@ -10,6 +10,8 @@ import { motion as Motion, AnimatePresence } from "framer-motion";
 import { TICKET_STATUS_CONFIG as STATUS_CONFIG } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function TiketSaya() {
   const navigate = useNavigate();
@@ -20,7 +22,11 @@ export default function TiketSaya() {
   const [selectedTicket, setSelectedTicket] = useState(null);
 
   const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +39,7 @@ export default function TiketSaya() {
 
   const fetchTickets = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       setError(null);
       const response = await ticketAPI.getTickets();
 
@@ -50,9 +56,9 @@ export default function TiketSaya() {
       setError("Gagal memuat tiket");
       showNotification("Gagal memuat tiket", "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     fetchTickets();
@@ -340,16 +346,12 @@ export default function TiketSaya() {
     return (
       <div className="ui-page">
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="ui-spinner mx-auto size-16"
-            />
-            <p className="mt-6 text-gray-600 font-medium">Memuat tiket Anda...</p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-[60vh]"
+          label="Memuat tiket Anda..."
+          description="Menyiapkan tiket aktif dan riwayat penggunaannya"
+        />
       </div>
     );
   }
@@ -453,7 +455,7 @@ export default function TiketSaya() {
                 variant="primary" className="px-3 py-2"
                 whileTap={{ scale: 0.95 }}
               >
-                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                <RefreshCw size={16} />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
             </Motion.div>

@@ -31,6 +31,8 @@ import {
 } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function EventRegister() {
   const navigate = useNavigate();
@@ -57,11 +59,19 @@ export default function EventRegister() {
   });
 
   const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const {
+    isLoading: loadingCategories,
+    startLoading: startLoadingCategories,
+    stopLoading: stopLoadingCategories,
+  } = useLoading(true);
   const [posterFile, setPosterFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [ticketList, setTicketList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [isCustomVenue, setIsCustomVenue] = useState(false);
@@ -70,7 +80,7 @@ export default function EventRegister() {
 
   const fetchEventCategories = useCallback(async () => {
     try {
-      setLoadingCategories(true);
+      startLoadingCategories();
       const response = await eventAPI.getEventCategories();
       const categoriesData = response.data.event_category || [];
       setCategories(categoriesData);
@@ -78,9 +88,9 @@ export default function EventRegister() {
       console.error("Error fetching event categories:", error);
       showNotification("Gagal memuat kategori event", "Error", "error");
     } finally {
-      setLoadingCategories(false);
+      stopLoadingCategories();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoadingCategories, stopLoadingCategories]);
 
   useEffect(() => {
     fetchEventCategories();
@@ -266,7 +276,7 @@ const handleCloseModal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    startLoading();
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -284,7 +294,7 @@ const handleCloseModal = () => {
         "Validasi Gagal",
         "warning"
       );
-      setLoading(false);
+      stopLoading();
       return;
     }
 
@@ -294,7 +304,7 @@ const handleCloseModal = () => {
         "Peringatan",
         "warning"
       );
-      setLoading(false);
+      stopLoading();
       return;
     }
 
@@ -353,7 +363,7 @@ const handleCloseModal = () => {
         "error"
       );
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -497,9 +507,10 @@ const handleCloseModal = () => {
                       ))}
                     </select>
                     {loadingCategories && (
-                      <p className="text-xs text-gray-500">
-                        Sedang memuat kategori...
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <LoadingSpinner size="xs" tone="neutral" />
+                        <span>Sedang memuat kategori...</span>
+                      </div>
                     )}
                   </div>
 
@@ -878,22 +889,17 @@ const handleCloseModal = () => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={loading}
-                  variant="primary" className="flex-1 px-6 py-3"
+                  loading={loading}
+                  loadingLabel="Membuat Event..."
+                  variant="primary"
+                  className="flex-1 px-6 py-3"
                   whileHover={{
                     scale: loading ? 1 : 1.02,
                     y: loading ? 0 : -1,
                   }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Membuat Event...
-                    </div>
-                  ) : (
-                    "Daftarkan Event"
-                  )}
+                  Daftarkan Event
                 </Button>
               </Motion.div>
             </Motion.form>

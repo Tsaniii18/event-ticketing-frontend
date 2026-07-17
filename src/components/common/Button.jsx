@@ -1,5 +1,6 @@
 import { createElement, forwardRef } from "react";
 import { motion as Motion } from "framer-motion";
+import LoadingSpinner from "./LoadingSpinner";
 
 const VARIANT_CLASSES = {
   custom: "",
@@ -61,10 +62,13 @@ const Button = forwardRef(function Button(
       ]
         .filter(Boolean)
         .join(" ");
+  const spinnerTone = ["ghost", "muted", "secondary", "soft"].includes(variant)
+    ? "brand"
+    : "light";
 
   const content = (
     <>
-      {loading && <span className="ui-button-spinner" aria-hidden="true" />}
+      {loading && <LoadingSpinner size="xs" tone={spinnerTone} />}
       {loading ? loadingLabel || children : children}
     </>
   );

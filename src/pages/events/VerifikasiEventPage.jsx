@@ -8,13 +8,19 @@ import { Search, Filter, Calendar, X, Eye, CheckCircle, XCircle, RefreshCw, File
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
 import { routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function VerifikasiEventPage() {
   const navigate = useNavigate();
   const { notification, showNotification, hideNotification } = useNotification();
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [approvalComment, setApprovalComment] = useState("");
 
@@ -24,7 +30,7 @@ export default function VerifikasiEventPage() {
 
   const fetchPendingEvents = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await eventAPI.getPendingEvents();
       const pendingEvents = response.data.filter(event => event.status === "pending");
       setEvents(pendingEvents);
@@ -32,9 +38,9 @@ export default function VerifikasiEventPage() {
       console.error("Error fetching pending events:", error);
       showNotification("Gagal memuat daftar event pending", "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   const applyFilters = useCallback(() => {
     let filtered = [...events];
@@ -257,18 +263,12 @@ export default function VerifikasiEventPage() {
             </Motion.div>
 
             {loading ? (
-              <Motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-20"
-              >
-                <Motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="ui-spinner"
-                />
-                <p className="mt-4 text-gray-600">Memuat daftar event...</p>
-              </Motion.div>
+              <LoadingState
+                variant="compact"
+                className="py-20"
+                label="Memuat daftar event..."
+                description="Menyiapkan event yang menunggu verifikasi"
+              />
             ) : filteredEvents.length === 0 ? (
               <Motion.div
                 initial={{ opacity: 0, y: 20 }}

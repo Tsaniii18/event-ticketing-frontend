@@ -35,13 +35,23 @@ import {
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
 import { routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function EventSayaPage() {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const {
+    isLoading: refreshing,
+    startLoading: startRefreshing,
+    stopLoading: stopRefreshing,
+  } = useLoading(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -52,7 +62,7 @@ export default function EventSayaPage() {
 
   const fetchMyEvents = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await eventAPI.getMyEvents();
       setEvents(response.data.events || []);
       setError(null);
@@ -60,13 +70,13 @@ export default function EventSayaPage() {
       console.error("Error fetching my events:", err);
       setError("Gagal memuat event saya");
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      stopLoading();
+      stopRefreshing();
     }
-  }, []);
+  }, [startLoading, stopLoading, stopRefreshing]);
 
   const handleRefresh = () => {
-    setRefreshing(true);
+    startRefreshing();
     fetchMyEvents();
   };
 
@@ -157,16 +167,12 @@ export default function EventSayaPage() {
     return (
       <div>
         <Navbar />
-        <div className="min-h-screen py-8 flex items-center justify-center pt-36">
-          <Motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center"
-          >
-            <div className="ui-spinner mb-4" />
-            <div className="text-lg text-gray-600">Memuat event saya...</div>
-          </Motion.div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-screen pt-36"
+          label="Memuat event saya..."
+          description="Menyiapkan daftar event dan status pengelolaannya"
+        />
       </div>
     );
   }

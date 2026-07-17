@@ -25,11 +25,17 @@ import {
   PAGE_CONTAINER_VARIANTS as containerVariants,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function LaporkanMasalahPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("buat");
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [reports, setReports] = useState([]);
   const { user } = useSessionUser();
 
@@ -37,7 +43,7 @@ export default function LaporkanMasalahPage() {
 
   const fetchMyFeedback = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await feedbackAPI.getMyFeedback();
       const sortedFeedback = (response.data.feedback || []).sort((a, b) =>
         new Date(b.created_at) - new Date(a.created_at)
@@ -51,9 +57,9 @@ export default function LaporkanMasalahPage() {
       );
       setReports([]);
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     if (activeTab === "riwayat" && user) fetchMyFeedback();
@@ -117,7 +123,7 @@ export default function LaporkanMasalahPage() {
     }
 
     try {
-      setLoading(true);
+      startLoading();
 
       const formData = new FormData();
       formData.append("feedback_category", finalCategory);
@@ -147,7 +153,7 @@ export default function LaporkanMasalahPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -455,25 +461,18 @@ export default function LaporkanMasalahPage() {
                   <Button
                     type="button"
                     onClick={submitReport}
-                    disabled={loading}
-                    variant="primary" className="flex-1 px-6 py-3 flex items-center justify-center gap-2"
+                    loading={loading}
+                    loadingLabel="Mengirim..."
+                    variant="primary"
+                    className="flex-1 px-6 py-3"
                     whileHover={{
                       scale: loading ? 1 : 1.02,
                       y: loading ? 0 : -1,
                     }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {loading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Mengirim...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={18} />
-                        Kirim Laporan
-                      </>
-                    )}
+                    <Send size={18} />
+                    Kirim Laporan
                   </Button>
                 </Motion.div>
               </Motion.div>
@@ -486,18 +485,12 @@ export default function LaporkanMasalahPage() {
                 transition={{ duration: 0.4 }}
               >
                 {loading ? (
-                  <Motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center py-20"
-                  >
-                    <Motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="ui-spinner"
-                    />
-                    <p className="mt-4 text-gray-600">Memuat riwayat laporan...</p>
-                  </Motion.div>
+                  <LoadingState
+                    variant="compact"
+                    className="py-20"
+                    label="Memuat riwayat laporan..."
+                    description="Menyiapkan laporan dan tanggapan terbaru"
+                  />
                 ) : reports.length === 0 ? (
                   <Motion.div
                     initial={{ opacity: 0, y: 20 }}

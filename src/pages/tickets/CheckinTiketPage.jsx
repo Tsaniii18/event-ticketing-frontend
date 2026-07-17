@@ -22,7 +22,6 @@ import {
   MapPin,
   Clock,
   AlertCircle,
-  Loader2,
   ScanLine,
   ChevronLeft,
   Tag,
@@ -37,14 +36,23 @@ import {
 } from "lucide-react";
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function CheckinTiketPage() {
   const { eventId } = useParams();
   const navigate = useNavigate();
 
   const [scanResult, setScanResult] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const {
+    isLoading: preparingScanner,
+    stopLoading: finishPreparingScanner,
+  } = useLoading(true);
+  const {
+    isLoading: isProcessing,
+    startLoading: startProcessing,
+    stopLoading: stopProcessing,
+  } = useLoading(false);
   const [ticketData, setTicketData] = useState(null);
   const [eventData, setEventData] = useState(null);
   const [checkInStatus, setCheckInStatus] = useState(null);
@@ -70,12 +78,12 @@ export default function CheckinTiketPage() {
       return;
     }
 
-    setIsLoaded(true);
-  }, [navigate, showNotification, user]);
+    finishPreparingScanner();
+  }, [finishPreparingScanner, navigate, showNotification, user]);
 
   useEffect(() => {
     const fetchEventData = async () => {
-      if (!eventId || !isLoaded) return;
+      if (!eventId || preparingScanner) return;
 
       try {
         const response = await eventAPI.getEvent(eventId);
@@ -87,7 +95,7 @@ export default function CheckinTiketPage() {
     };
 
     fetchEventData();
-  }, [eventId, isLoaded, showNotification]);
+  }, [eventId, preparingScanner, showNotification]);
 
   const cleanUpScanner = useCallback(() => {
     if (scannerRef.current) {
@@ -97,7 +105,7 @@ export default function CheckinTiketPage() {
   }, []);
 
   const startScanner = useCallback(() => {
-    if (!isLoaded) return;
+    if (preparingScanner) return;
 
     cleanUpScanner();
 
@@ -123,7 +131,7 @@ export default function CheckinTiketPage() {
     async function onScanSuccess(decodedText) {
       if (isProcessing) return;
 
-      setIsProcessing(true);
+      startProcessing();
       setScanResult(decodedText);
 
       await processCheckInRef.current?.(decodedText);
@@ -133,7 +141,7 @@ export default function CheckinTiketPage() {
 
     newScanner.render(onScanSuccess, onScanError);
     scannerRef.current = newScanner;
-  }, [cleanUpScanner, isLoaded, isProcessing]);
+  }, [cleanUpScanner, isProcessing, preparingScanner, startProcessing]);
 
   const processCheckIn = async (ticketCode) => {
     try {
@@ -153,7 +161,7 @@ export default function CheckinTiketPage() {
           setErrorMessage("Event belum dimulai. Tiket ini belum bisa digunakan untuk check-in.");
           setShowResult(true);
           showNotification("Tiket belum bisa digunakan, event belum dimulai", "Belum Jadwalnya", "warning");
-          setIsProcessing(false);
+          stopProcessing();
           return;
         }
 
@@ -165,7 +173,7 @@ export default function CheckinTiketPage() {
           setErrorMessage("Waktu event sudah berakhir. Tiket ini sudah tidak berlaku.");
           setShowResult(true);
           showNotification("Tiket sudah kadaluarsa", "Tiket Kadaluarsa", "error");
-          setIsProcessing(false);
+          stopProcessing();
           return;
         }
       }
@@ -253,21 +261,21 @@ export default function CheckinTiketPage() {
         showNotification(errorMsg, "Check-in Gagal", "error");
       }
     } finally {
-      setIsProcessing(false);
+      stopProcessing();
     }
   };
 
   processCheckInRef.current = processCheckIn;
 
   useEffect(() => {
-    if (isLoaded && user) {
+    if (!preparingScanner && user) {
       startScanner();
     }
 
     return () => {
       cleanUpScanner();
     };
-  }, [isLoaded, user, startScanner, cleanUpScanner]);
+  }, [preparingScanner, user, startScanner, cleanUpScanner]);
 
   const handleRescan = () => {
     window.location.reload();
@@ -278,20 +286,16 @@ export default function CheckinTiketPage() {
     navigate(-1);
   };
 
-  if (!isLoaded || !user) {
+  if (preparingScanner || !user) {
     return (
       <div className="min-h-screen bg-gray-100">
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh] pt-24">
-          <Motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center bg-white p-8 rounded-2xl shadow-lg border border-gray-200"
-          >
-            <Loader2 className="w-12 h-12 text-brand-600 mx-auto animate-spin" />
-            <p className="mt-4 text-gray-600 font-medium">Mempersiapkan scanner...</p>
-          </Motion.div>
-        </div>
+        <LoadingState
+          variant="section"
+          className="mx-auto mt-32 min-h-[60vh] max-w-3xl"
+          label="Mempersiapkan scanner..."
+          description="Memeriksa akses kamera dan data event"
+        />
       </div>
     );
   }
@@ -465,17 +469,13 @@ export default function CheckinTiketPage() {
                 )}
 
                 {isProcessing && (
-                  <Motion.div
+                  <LoadingState
                     key="processing"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="p-12 text-center"
-                  >
-                    <Loader2 className="w-16 h-16 text-brand-600 mx-auto animate-spin" />
-                    <p className="mt-4 text-lg font-medium text-gray-700">Memproses check-in...</p>
-                    <p className="text-gray-500 mt-2">Mohon tunggu sebentar</p>
-                  </Motion.div>
+                    variant="plain"
+                    className="p-12"
+                    label="Memproses check-in..."
+                    description="Mohon tunggu sebentar"
+                  />
                 )}
 
                 {showResult && !isProcessing && scanResult && (

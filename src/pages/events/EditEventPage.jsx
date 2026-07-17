@@ -24,6 +24,9 @@ import {
 } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function EditEventPage() {
   const { eventId } = useParams();
@@ -55,13 +58,21 @@ export default function EditEventPage() {
   });
 
   const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const {
+    isLoading: loadingCategories,
+    startLoading: startLoadingCategories,
+    stopLoading: stopLoadingCategories,
+  } = useLoading(true);
   const [posterFile, setPosterFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [currentPoster, setCurrentPoster] = useState("");
   const [currentBanner, setCurrentBanner] = useState("");
   const [ticketList, setTicketList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [event, setEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
@@ -70,7 +81,7 @@ export default function EditEventPage() {
 
   const fetchEventCategories = useCallback(async () => {
     try {
-      setLoadingCategories(true);
+      startLoadingCategories();
       const response = await eventAPI.getEventCategories();
       const categoriesData = response.data.event_category || [];
       setCategories(categoriesData);
@@ -78,9 +89,9 @@ export default function EditEventPage() {
       console.error("Error fetching event categories:", error);
       showNotification("Gagal memuat kategori event", "Error", "error");
     } finally {
-      setLoadingCategories(false);
+      stopLoadingCategories();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoadingCategories, stopLoadingCategories]);
 
   useEffect(() => {
     fetchEventCategories();
@@ -89,7 +100,7 @@ export default function EditEventPage() {
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        setLoading(true);
+        startLoading();
         const response = await eventAPI.getEvent(eventId);
         const eventData = response.data;
 
@@ -170,14 +181,14 @@ export default function EditEventPage() {
         showNotification("Gagal memuat data event", "Error", "error");
         navigate(ROUTES.MY_EVENTS);
       } finally {
-        setLoading(false);
+        stopLoading();
       }
     };
 
     if (eventId) {
       fetchEventData();
     }
-  }, [eventId, navigate, showNotification]);
+  }, [eventId, navigate, showNotification, startLoading, stopLoading]);
 
   const validateTicketDates = (ticketStart, ticketEnd) => {
     if (!formData.date_start || !formData.date_end) {
@@ -446,7 +457,7 @@ export default function EditEventPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    startLoading();
 
     if (minDate && formData.date_start < minDate) {
       showNotification(
@@ -454,13 +465,13 @@ export default function EditEventPage() {
         "Validasi Gagal",
         "warning"
       );
-      setLoading(false);
+      stopLoading();
       return;
     }
 
     if (ticketList.length === 0) {
       showNotification("Harap tambahkan minimal satu kategori tiket!", "Peringatan", "warning");
-      setLoading(false);
+      stopLoading();
       return;
     }
 
@@ -475,7 +486,7 @@ export default function EditEventPage() {
         "Validasi Gagal",
         "warning"
       );
-      setLoading(false);
+      stopLoading();
       return;
     }
 
@@ -522,7 +533,7 @@ export default function EditEventPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -564,12 +575,12 @@ export default function EditEventPage() {
     return (
       <div>
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="ui-spinner mx-auto mb-4 size-16"></div>
-            <p className="text-gray-600">Memuat data event...</p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-screen"
+          label="Memuat data event..."
+          description="Menyiapkan informasi event dan kategori tiket"
+        />
       </div>
     );
   }
@@ -692,6 +703,12 @@ export default function EditEventPage() {
                         ))
                       )}
                     </select>
+                    {loadingCategories && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <LoadingSpinner size="xs" tone="neutral" />
+                        <span>Sedang memuat kategori...</span>
+                      </div>
+                    )}
                   </div>
 
                   {formData.category && getChildCategories().length > 0 && (
@@ -1028,17 +1045,15 @@ export default function EditEventPage() {
                 <Button
                   type="submit"
                   disabled={loading || ticketsNeedingAdjustment.length > 0}
-                  variant="primary" className="flex-1 px-6 py-3"
+                  loading={loading}
+                  loadingLabel="Menyimpan Perubahan..."
+                  variant="primary"
+                  className="flex-1 px-6 py-3"
                   whileHover={{ scale: loading ? 1 : 1.02, y: loading ? 0 : -1 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Save size={20} />
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Menyimpan Perubahan...
-                    </div>
-                  ) : ticketsNeedingAdjustment.length > 0 ? (
+                  {ticketsNeedingAdjustment.length > 0 ? (
                     "Sesuaikan Tanggal Tiket Terlebih Dahulu"
                   ) : (
                     "Simpan & Ajukan Kembali"

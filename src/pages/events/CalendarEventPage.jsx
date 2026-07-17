@@ -38,6 +38,8 @@ import {
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function CalendarEventPage() {
   const navigate = useNavigate();
@@ -46,7 +48,11 @@ export default function CalendarEventPage() {
 
   const [events, setEvents] = useState([]);
   const [eventCategories, setEventCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [viewMode, setViewMode] = useState("calendar");
@@ -108,7 +114,7 @@ export default function CalendarEventPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        startLoading();
         const [eventsResponse, categoriesResponse] = await Promise.all([
           eventAPI.getApprovedEvents(),
           eventAPI.getEventCategories()
@@ -123,12 +129,12 @@ export default function CalendarEventPage() {
         console.error("Error fetching data:", error);
         showNotification("Gagal memuat data event", "Error", "error");
       } finally {
-        setLoading(false);
+        stopLoading();
       }
     };
 
     fetchData();
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   const handleLikeEvent = async (eventId, e) => {
     e.stopPropagation();
@@ -439,12 +445,12 @@ export default function CalendarEventPage() {
                       eventAPI.getApprovedEvents().then((response) => setEvents(response.data || []));
                       fetchEventCategories();
                     }}
-                    variant="primary" className="px-3 py-1.5 sm:px-4 sm:py-2.5 sm:text-base"
+                    loading={loading}
+                    loadingLabel="Memuat..."
+                    variant="primary"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2.5 sm:text-base"
                   >
-                    <RefreshCw
-                      size={16}
-                      className={`sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`}
-                    />
+                    <RefreshCw size={16} className="sm:size-4" />
                     <span className="hidden sm:inline">Refresh</span>
                   </Button>
                 </div>
@@ -564,15 +570,12 @@ export default function CalendarEventPage() {
             </Motion.div>
 
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-16 sm:py-20">
-                <div className="relative w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4">
-                  <div className="absolute inset-0 rounded-full border-4 border-brand-100"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-brand-600 border-t-transparent animate-spin"></div>
-                </div>
-                <p className="text-gray-600 font-medium text-sm sm:text-base">
-                  Memuat data event...
-                </p>
-              </div>
+              <LoadingState
+                variant="compact"
+                className="py-16 sm:py-20"
+                label="Memuat data event..."
+                description="Menyiapkan event untuk kalender pilihan Anda"
+              />
             ) : viewMode === "calendar" ? (
               <div>
                 <div className="flex items-center justify-between mb-4 sm:mb-6">

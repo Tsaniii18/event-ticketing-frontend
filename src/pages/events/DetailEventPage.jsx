@@ -42,6 +42,8 @@ import {
 } from "../../components/events/EventTicketSelection";
 import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 const formatDescriptionWithNewlines = (text) => {
   if (!text) return "";
@@ -244,7 +246,9 @@ function VerificationModal({
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-red-600 hover:bg-red-700"
             }`}
-            disabled={verifying || (action === "reject" && !comment.trim())}
+            disabled={action === "reject" && !comment.trim()}
+            loading={verifying}
+            loadingLabel="Memproses..."
             whileHover={{
               scale:
                 verifying || (action === "reject" && !comment.trim())
@@ -258,20 +262,7 @@ function VerificationModal({
                   : 0.98,
             }}
           >
-            {verifying ? (
-              <Motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center gap-2"
-              >
-                <Motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                />
-                Memproses...
-              </Motion.span>
-            ) : action === "approve" ? (
+            {action === "approve" ? (
               "Setujui"
             ) : (
               "Tolak"
@@ -492,21 +483,33 @@ export default function EventDetail() {
 
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [error, setError] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEO, setIsEO] = useState(false);
   const [isRegularUser, setIsRegularUser] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const {
+    isLoading: verifying,
+    startLoading: startVerifying,
+    stopLoading: stopVerifying,
+  } = useLoading(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationAction, setVerificationAction] = useState(null);
   const [approvalComment, setApprovalComment] = useState("");
 
   const [isLiked, setIsLiked] = useState(false);
   const [totalLikes, setTotalLikes] = useState(0);
-  const [likeLoading, setLikeLoading] = useState(false);
+  const {
+    isLoading: likeLoading,
+    startLoading: startLikeLoading,
+    stopLoading: stopLikeLoading,
+  } = useLoading(false);
 
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -514,7 +517,7 @@ export default function EventDetail() {
   useEffect(() => {
     const fetchEventDetail = async () => {
       try {
-        setLoading(true);
+        startLoading();
         setError(null);
         const response = await api.get(`/api/event/${eventId}`);
         const eventData = response.data;
@@ -543,7 +546,7 @@ export default function EventDetail() {
         setError("Gagal memuat detail event");
         showNotification("Gagal memuat detail event", "Error", "error");
       } finally {
-        setLoading(false);
+        stopLoading();
       }
     };
 
@@ -586,7 +589,7 @@ export default function EventDetail() {
     if (eventId) {
       fetchEventDetail();
     }
-  }, [eventId, showNotification]);
+  }, [eventId, showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     const fetchLikedStatus = async () => {
@@ -620,7 +623,7 @@ export default function EventDetail() {
 
     if (likeLoading) return;
 
-    setLikeLoading(true);
+    startLikeLoading();
 
     const previousIsLiked = isLiked;
     const previousTotalLikes = totalLikes;
@@ -647,7 +650,7 @@ export default function EventDetail() {
       setTotalLikes(previousTotalLikes);
       showNotification("Gagal memproses like", "Error", "error");
     } finally {
-      setLikeLoading(false);
+      stopLikeLoading();
     }
   };
 
@@ -751,7 +754,7 @@ export default function EventDetail() {
 
   const handleVerifyEvent = async (action) => {
     try {
-      setVerifying(true);
+      startVerifying();
 
       const statusData = {
         status: action === "approve" ? "approved" : "rejected",
@@ -777,7 +780,7 @@ export default function EventDetail() {
       console.error("Error verifying event:", error);
       showNotification("Gagal memverifikasi event", "Error", "error");
     } finally {
-      setVerifying(false);
+      stopVerifying();
     }
   };
 
@@ -808,14 +811,12 @@ export default function EventDetail() {
     return (
       <div className="ui-page">
         <Navbar />
-        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
-          <div className="flex flex-col items-center gap-3 sm:gap-4">
-            <div className="ui-spinner sm:size-16"></div>
-            <p className="text-gray-600 text-sm sm:text-base">
-              Memuat detail event...
-            </p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="h-[calc(100vh-80px)]"
+          label="Memuat detail event..."
+          description="Menyiapkan jadwal, lokasi, dan informasi tiket"
+        />
         <NotificationModal
           message={notification.message}
           title={notification.title}
@@ -906,7 +907,13 @@ export default function EventDetail() {
 
                     <Button unstyled
                       onClick={handleLikeEvent}
-                      disabled={likeLoading || !isRegularUser}
+                      disabled={!isRegularUser}
+                      loading={likeLoading}
+                      loadingLabel={
+                        <span className="font-semibold text-sm sm:text-base">
+                          {formatNumber(totalLikes)}
+                        </span>
+                      }
                       className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all shrink-0 ${
                         isLiked
                           ? "bg-pink-500 text-white hover:bg-pink-600"
@@ -926,7 +933,7 @@ export default function EventDetail() {
                       <Heart
                         className={`w-4 h-4 sm:w-5 sm:h-5 transition-all ${
                           isLiked ? "fill-current" : ""
-                        } ${likeLoading ? "animate-pulse" : ""}`}
+                        }`}
                       />
                       <span className="font-semibold text-sm sm:text-base">
                         {formatNumber(totalLikes)}

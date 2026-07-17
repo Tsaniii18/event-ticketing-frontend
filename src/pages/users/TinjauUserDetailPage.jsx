@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function TinjauUserDetailPage() {
   const { userId } = useParams();
@@ -22,22 +24,30 @@ export default function TinjauUserDetailPage() {
   const { notification, showNotification, hideNotification } = useNotification();
 
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
+  const {
+    isLoading: submitting,
+    startLoading: startSubmitting,
+    stopLoading: stopSubmitting,
+  } = useLoading(false);
   const [comment, setComment] = useState("");
 
   const fetchUserDetail = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await userAPI.getUserById(userId);
       setUser(response.data);
     } catch (error) {
       console.error("Error fetching user detail:", error);
       showNotification("Gagal memuat detail pengguna", "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [userId, showNotification]);
+  }, [userId, showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     fetchUserDetail();
@@ -47,7 +57,7 @@ export default function TinjauUserDetailPage() {
     if (submitting) return;
 
     try {
-      setSubmitting(true);
+      startSubmitting();
 
       await userAPI.verifyOrganizer(userId, {
         status: status,
@@ -67,7 +77,7 @@ export default function TinjauUserDetailPage() {
       console.error("Error verifying user:", error);
       showNotification("Gagal memverifikasi pengguna", "Error", "error");
     } finally {
-      setSubmitting(false);
+      stopSubmitting();
     }
   };
 
@@ -88,16 +98,12 @@ export default function TinjauUserDetailPage() {
     return (
       <div>
         <Navbar />
-        <div className="ui-page flex items-center justify-center">
-          <Motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center"
-          >
-            <div className="ui-spinner mx-auto size-16"></div>
-            <p className="mt-4 text-gray-600 text-lg">Memuat detail pengguna...</p>
-          </Motion.div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="ui-page min-h-[70vh]"
+          label="Memuat detail pengguna..."
+          description="Menyiapkan informasi dan status verifikasi pengguna"
+        />
       </div>
     );
   }
@@ -372,41 +378,27 @@ export default function TinjauUserDetailPage() {
                   </Button>
                   <Button
                     onClick={() => handleVerify("rejected")}
-                    variant="danger" className="px-6 py-3"
-                    disabled={submitting}
+                    variant="danger"
+                    className="px-6 py-3"
+                    loading={submitting}
+                    loadingLabel="Memproses..."
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={18} />
-                        Tolak
-                      </>
-                    )}
+                    <XCircle size={18} />
+                    Tolak
                   </Button>
                   <Button
                     onClick={() => handleVerify("approved")}
-                    variant="success" className="px-6 py-3"
-                    disabled={submitting}
+                    variant="success"
+                    className="px-6 py-3"
+                    loading={submitting}
+                    loadingLabel="Memproses..."
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle size={18} />
-                        Setujui
-                      </>
-                    )}
+                    <CheckCircle size={18} />
+                    Setujui
                   </Button>
                 </Motion.div>
               </Motion.div>

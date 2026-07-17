@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Navbar from "../../components/layout/Navbar";
 import { userAPI } from "../../services";
 import EditProfileModal from "../../components/users/EditProfileModal";
@@ -15,10 +15,16 @@ import {
   Clock, XCircle, Download, Eye
 } from "lucide-react";
 import Button from "../../components/common/Button";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function LihatProfilPage() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const {
     previewData: previewImageData,
@@ -27,12 +33,9 @@ export default function LihatProfilPage() {
     closeImagePreview,
   } = useImagePreview();
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
+      startLoading();
       const response = await userAPI.getProfile();
       setUser(response.data);
       sessionStorage.setItem("user", JSON.stringify(response.data));
@@ -43,9 +46,13 @@ export default function LihatProfilPage() {
         setUser(JSON.parse(userData));
       }
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  };
+  }, [startLoading, stopLoading]);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   const handleProfileUpdate = (updatedUser) => {
     setUser(updatedUser);
@@ -103,16 +110,12 @@ export default function LihatProfilPage() {
     return (
       <div>
         <Navbar />
-        <div className="ui-page flex items-center justify-center">
-          <Motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center"
-          >
-            <div className="ui-spinner mx-auto size-16"></div>
-            <p className="mt-4 text-gray-600 text-lg">Memuat data profil...</p>
-          </Motion.div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="ui-page min-h-[70vh]"
+          label="Memuat data profil..."
+          description="Menyiapkan informasi akun dan profil Anda"
+        />
       </div>
     );
   }

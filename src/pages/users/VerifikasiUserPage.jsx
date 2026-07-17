@@ -12,6 +12,8 @@ import {
 } from "../../utils";
 import Button from "../../components/common/Button";
 import { routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function VerifikasiUserPage() {
   const navigate = useNavigate();
@@ -19,7 +21,11 @@ export default function VerifikasiUserPage() {
   const [users, setUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [activeTab, setActiveTab] = useState("pending");
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,7 +34,7 @@ export default function VerifikasiUserPage() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await userAPI.getAllOrganizers();
 
       const pendingUsers = response.data.filter(
@@ -40,9 +46,9 @@ export default function VerifikasiUserPage() {
       console.error("Error fetching organizers:", error);
       showNotification("Gagal memuat daftar organizer", "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   const applyFilters = useCallback(() => {
     const userList = activeTab === "pending" ? users : allUsers;
@@ -343,18 +349,12 @@ export default function VerifikasiUserPage() {
             </Motion.div>
 
             {loading ? (
-              <Motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-20"
-              >
-                <Motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="ui-spinner"
-                />
-                <p className="mt-4 text-gray-600">Memuat data pengguna...</p>
-              </Motion.div>
+              <LoadingState
+                variant="compact"
+                className="py-20"
+                label="Memuat data pengguna..."
+                description="Menyiapkan daftar dan status verifikasi pengguna"
+              />
             ) : filteredUsers.length === 0 ? (
               <Motion.div
                 initial={{ opacity: 0, y: 20 }}

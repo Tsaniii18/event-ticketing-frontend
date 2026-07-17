@@ -16,7 +16,6 @@ import {
   Minus,
   AlertCircle,
   ShoppingCart,
-  Loader2,
   RefreshCw,
   Sparkles,
   Ticket,
@@ -29,12 +28,22 @@ import {
 } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function KeranjangPage() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
+  const {
+    isLoading: checkoutLoading,
+    startLoading: startCheckoutLoading,
+    stopLoading: stopCheckoutLoading,
+  } = useLoading(false);
   const [error, setError] = useState("");
 
   const { notification, showNotification, hideNotification } = useNotification();
@@ -52,7 +61,7 @@ export default function KeranjangPage() {
 
   const fetchCart = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       setError("");
       const response = await cartAPI.getCart();
 
@@ -68,9 +77,9 @@ export default function KeranjangPage() {
       setError(errorMessage);
       showNotification(errorMessage, "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     fetchCart();
@@ -130,7 +139,7 @@ export default function KeranjangPage() {
 
   const confirmFreeTicketCheckout = async () => {
     setShowFreeTicketModal(false);
-    setCheckoutLoading(true);
+    startCheckoutLoading();
 
     try {
       const response = await paymentAPI.createPayment();
@@ -148,7 +157,7 @@ export default function KeranjangPage() {
       const errorMessage = err.response?.data?.error || "Gagal memproses tiket gratis";
       showNotification(errorMessage, "Error", "error");
     } finally {
-      setCheckoutLoading(false);
+      stopCheckoutLoading();
     }
   };
 
@@ -219,7 +228,7 @@ export default function KeranjangPage() {
       return;
     }
 
-    setCheckoutLoading(true);
+    startCheckoutLoading();
 
     try {
       const response = await paymentAPI.createPayment();
@@ -242,7 +251,7 @@ export default function KeranjangPage() {
       const errorMessage = err.response?.data?.error || "Gagal memproses checkout";
       showNotification(errorMessage, "Checkout Gagal", "error");
     } finally {
-      setCheckoutLoading(false);
+      stopCheckoutLoading();
     }
   };
 
@@ -255,16 +264,12 @@ export default function KeranjangPage() {
     return (
       <div className="ui-page">
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh] pt-24">
-          <div className="text-center">
-            <Motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="ui-spinner mx-auto size-16"
-            />
-            <p className="mt-6 text-gray-600 font-medium">Memuat keranjang...</p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-[60vh] pt-24"
+          label="Memuat keranjang..."
+          description="Memeriksa tiket dan total pesanan Anda"
+        />
       </div>
     );
   }
@@ -439,17 +444,12 @@ export default function KeranjangPage() {
                   </Button>
                   <Button
                     onClick={confirmFreeTicketCheckout}
-                    disabled={checkoutLoading}
-                    variant="success" className="flex-1 py-2"
+                    loading={checkoutLoading}
+                    loadingLabel="Memproses..."
+                    variant="success"
+                    className="flex-1 py-2"
                   >
-                    {checkoutLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      "Konfirmasi"
-                    )}
+                    Konfirmasi
                   </Button>
                 </div>
               </div>
@@ -590,7 +590,7 @@ export default function KeranjangPage() {
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+                <RefreshCw size={18} />
                 Refresh
               </Button>
             </Motion.div>
@@ -782,23 +782,16 @@ export default function KeranjangPage() {
 
                     <div className="lg:w-64">
                       <Button
-                        variant="primary" className="w-full rounded-xl bg-linear-to-r from-brand-600 to-brand-700 py-4 text-lg font-semibold shadow-lg transition-all duration-200 hover:from-brand-700 hover:to-brand-800 hover:shadow-xl"
+                        variant="primary"
+                        className="w-full rounded-xl bg-linear-to-r from-brand-600 to-brand-700 py-4 text-lg font-semibold shadow-lg transition-all duration-200 hover:from-brand-700 hover:to-brand-800 hover:shadow-xl"
                         onClick={handleCheckout}
-                        disabled={checkoutLoading}
+                        loading={checkoutLoading}
+                        loadingLabel="Memproses..."
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        {checkoutLoading ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Memproses...
-                          </>
-                        ) : (
-                          <>
-                            <ExternalLink size={20} />
-                            Checkout & Bayar
-                          </>
-                        )}
+                        <ExternalLink size={20} />
+                        Checkout & Bayar
                       </Button>
                     </div>
                   </div>

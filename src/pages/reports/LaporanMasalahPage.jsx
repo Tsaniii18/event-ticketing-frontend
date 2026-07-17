@@ -22,11 +22,21 @@ import {
   getFeedbackStatusLabel,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function LaporanMasalahPage() {
   const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [updating, setUpdating] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
+  const {
+    isLoading: updating,
+    startLoading: startUpdating,
+    stopLoading: stopUpdating,
+  } = useLoading(false);
 
   const { notification, showNotification, hideNotification } = useNotification();
 
@@ -43,7 +53,7 @@ export default function LaporanMasalahPage() {
 
   const fetchAllFeedback = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await feedbackAPI.getAllFeedback();
       const sortedFeedback = (response.data.feedback || []).sort((a, b) =>
         new Date(b.created_at) - new Date(a.created_at)
@@ -57,9 +67,9 @@ export default function LaporanMasalahPage() {
       );
       setReports([]);
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     fetchAllFeedback();
@@ -82,7 +92,7 @@ export default function LaporanMasalahPage() {
     if (!detailModal.data) return;
 
     try {
-      setUpdating(true);
+      startUpdating();
 
       const formData = {
         status: status,
@@ -104,7 +114,7 @@ export default function LaporanMasalahPage() {
         "error"
       );
     } finally {
-      setUpdating(false);
+      stopUpdating();
     }
   };
 
@@ -256,61 +266,40 @@ export default function LaporanMasalahPage() {
                 </Button>
                 <div className="flex gap-2">
                   <Button
-                    variant="danger" className="px-5"
+                    variant="danger"
+                    className="px-5"
                     onClick={() => updateFeedbackStatus("rejected")}
-                    disabled={updating}
+                    loading={updating}
+                    loadingLabel="Memproses..."
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {updating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={16} />
-                        Tolak
-                      </>
-                    )}
+                    <XCircle size={16} />
+                    Tolak
                   </Button>
                   <Button
-                    variant="warning" className="px-5"
+                    variant="warning"
+                    className="px-5"
                     onClick={() => updateFeedbackStatus("processed")}
-                    disabled={updating}
+                    loading={updating}
+                    loadingLabel="Memproses..."
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {updating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle size={16} />
-                        Proses
-                      </>
-                    )}
+                    <AlertCircle size={16} />
+                    Proses
                   </Button>
                   <Button
-                    variant="success" className="px-5"
+                    variant="success"
+                    className="px-5"
                     onClick={() => updateFeedbackStatus("completed")}
-                    disabled={updating}
+                    loading={updating}
+                    loadingLabel="Memproses..."
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {updating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle size={16} />
-                        Terima
-                      </>
-                    )}
+                    <CheckCircle size={16} />
+                    Terima
                   </Button>
                 </div>
               </div>
@@ -531,18 +520,12 @@ export default function LaporanMasalahPage() {
             </Motion.div>
 
             {loading ? (
-              <Motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-20"
-              >
-                <Motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="ui-spinner"
-                />
-                <p className="mt-4 text-gray-600">Memuat data laporan...</p>
-              </Motion.div>
+              <LoadingState
+                variant="compact"
+                className="py-20"
+                label="Memuat data laporan..."
+                description="Menyiapkan laporan pengguna dan status penanganannya"
+              />
             ) : filteredReports.length === 0 ? (
               <Motion.div
                 initial={{ opacity: 0, y: 20 }}

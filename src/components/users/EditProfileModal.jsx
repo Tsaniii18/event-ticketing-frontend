@@ -4,6 +4,7 @@ import useNotification from "../../hooks/useNotification";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../common/Button";
 import { X, Camera, User, Mail, Lock, Building, MapPin, FileText, Eye, EyeOff } from "lucide-react";
+import useLoading from "../../hooks/useLoading";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
@@ -18,7 +19,11 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
   const [previewImages, setPreviewImages] = useState({
     profile_pict: user.profile_pict || '',
   });
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const profilePictRef = useRef(null);
@@ -67,7 +72,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    startLoading();
 
     try {
       const submitData = new FormData();
@@ -104,7 +109,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
       console.error('Error updating profile:', error);
       showNotification('Gagal memperbarui profil', 'Update Gagal', 'error');
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 

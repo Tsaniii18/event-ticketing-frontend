@@ -27,13 +27,19 @@ import {
 } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [bestSellingEvents, setBestSellingEvents] = useState([]);
   const [popularEvents, setPopularEvents] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [error, setError] = useState(null);
   const [likedEvents, setLikedEvents] = useState(new Set());
   const { user: sessionUser, isAuthenticated: isLoggedIn } = useSessionUser();
@@ -121,7 +127,7 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        setLoading(true);
+        startLoading();
         setError(null);
 
         const approvedResponse = await eventAPI.getApprovedEvents();
@@ -167,12 +173,12 @@ export default function LandingPage() {
         console.error("Error fetching events:", err);
         setError("Gagal memuat data event. Silakan coba lagi.");
       } finally {
-        setLoading(false);
+        stopLoading();
       }
     };
 
     fetchEvents();
-  }, [transformEvent]);
+  }, [startLoading, stopLoading, transformEvent]);
 
   const handleLikeEvent = async (eventId, e) => {
     e.stopPropagation();
@@ -307,15 +313,12 @@ export default function LandingPage() {
     return (
       <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="relative w-16 h-16 mx-auto mb-4">
-              <div className="absolute inset-0 rounded-full border-4 border-brand-100"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-brand-600 border-t-transparent animate-spin"></div>
-            </div>
-            <p className="text-gray-600 font-medium">Memuat event...</p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-screen"
+          label="Memuat event..."
+          description="Menyiapkan rekomendasi event terbaik untuk Anda"
+        />
       </div>
     );
   }

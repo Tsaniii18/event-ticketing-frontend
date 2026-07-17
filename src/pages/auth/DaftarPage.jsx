@@ -12,6 +12,7 @@ import {
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
 
 export default function DaftarPage() {
   const [formData, setFormData] = useState({
@@ -22,7 +23,11 @@ export default function DaftarPage() {
     role: "user",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -48,7 +53,7 @@ export default function DaftarPage() {
       return;
     }
 
-    setLoading(true);
+    startLoading();
 
     try {
       const response = await authAPI.register(formData);
@@ -70,7 +75,7 @@ export default function DaftarPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 

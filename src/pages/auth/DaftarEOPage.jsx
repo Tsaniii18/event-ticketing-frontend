@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
 import Button from "../../components/common/Button";
+import LoadingProgress from "../../components/common/LoadingProgress";
 import { authAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
@@ -23,6 +24,8 @@ import {
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import useLoadingProgress from "../../hooks/useLoadingProgress";
 
 export default function DaftarEOPage() {
   const [formData, setFormData] = useState({
@@ -38,9 +41,17 @@ export default function DaftarEOPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ktpFile, setKtpFile] = useState(null);
   const [ktpPreview, setKtpPreview] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const {
+    progress: uploadProgress,
+    resetProgress: resetUploadProgress,
+    startProgress: startUploadProgress,
+  } = useLoadingProgress();
   const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showCustomOrgType, setShowCustomOrgType] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -90,6 +101,7 @@ export default function DaftarEOPage() {
         setErrorMsg("Hanya file JPG, JPEG, atau PNG yang diizinkan!");
         setKtpFile(null);
         setKtpPreview(null);
+        resetUploadProgress();
         return;
       }
 
@@ -97,6 +109,7 @@ export default function DaftarEOPage() {
         setErrorMsg("Ukuran file maksimal 5MB!");
         setKtpFile(null);
         setKtpPreview(null);
+        resetUploadProgress();
         return;
       }
 
@@ -108,15 +121,7 @@ export default function DaftarEOPage() {
         setKtpPreview(e.target.result);
       };
       reader.readAsDataURL(file);
-
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        setUploadProgress(progress);
-        if (progress >= 100) {
-          clearInterval(interval);
-        }
-      }, 100);
+      startUploadProgress();
     }
   };
 
@@ -147,7 +152,7 @@ export default function DaftarEOPage() {
       return;
     }
 
-    setLoading(true);
+    startLoading();
 
     try {
       const submitData = new FormData();
@@ -183,7 +188,7 @@ export default function DaftarEOPage() {
         "Registrasi gagal. Coba lagi.";
       showNotification(errorMessage, "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -543,17 +548,10 @@ export default function DaftarEOPage() {
                     )}
 
                     {uploadProgress > 0 && (
-                      <div className="mt-3">
-                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-brand-500 transition-all duration-300"
-                            style={{ width: `${uploadProgress}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Mengunggah: {uploadProgress}%
-                        </p>
-                      </div>
+                      <LoadingProgress
+                        className="mt-3"
+                        progress={uploadProgress}
+                      />
                     )}
 
                     {ktpPreview && (

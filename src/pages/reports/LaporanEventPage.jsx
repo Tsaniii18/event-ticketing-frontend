@@ -33,18 +33,24 @@ import {
 } from "lucide-react";
 import { eventAPI } from "../../services";
 import { motion as Motion } from "framer-motion";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function LaporanEventPage() {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [reportData, setReportData] = useState(null);
   const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [error, setError] = useState(null);
 
   const fetchEventReport = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await eventAPI.getEventReport(eventId);
 
       if (response.data.report && response.data.metrics) {
@@ -65,9 +71,9 @@ export default function LaporanEventPage() {
       console.error("Error fetching event report:", err);
       setError("Gagal memuat laporan event");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [eventId]);
+  }, [eventId, startLoading, stopLoading]);
 
   useEffect(() => {
     fetchEventReport();
@@ -109,15 +115,12 @@ export default function LaporanEventPage() {
             className="ui-panel p-4 sm:p-6 md:p-8"
           >
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-16 sm:py-20">
-                <div className="relative w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4">
-                  <div className="absolute inset-0 rounded-full border-4 border-brand-100"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-brand-600 border-t-transparent animate-spin"></div>
-                </div>
-                <p className="text-gray-600 font-medium text-sm sm:text-base">
-                  Memuat laporan event...
-                </p>
-              </div>
+              <LoadingState
+                variant="compact"
+                className="py-16 sm:py-20"
+                label="Memuat laporan event..."
+                description="Mengolah penjualan, check-in, dan pendapatan event"
+              />
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-16 sm:py-20">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-100 flex items-center justify-center mb-4">

@@ -12,13 +12,18 @@ import {
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
 import { ROUTES } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     username_or_email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
@@ -33,7 +38,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    startLoading();
 
     try {
       const response = await authAPI.login(formData);
@@ -54,7 +59,7 @@ export default function LoginPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
 

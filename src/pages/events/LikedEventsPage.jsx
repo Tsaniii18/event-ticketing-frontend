@@ -21,13 +21,19 @@ import { eventAPI } from "../../services";
 import { CATEGORIES, getCategoryColor, getParentCategory } from "../../utils";
 import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
+import useLoading from "../../hooks/useLoading";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function LikedEventsPage() {
   const navigate = useNavigate();
   const { notification, showNotification, hideNotification } =
     useNotification();
   const [likedEvents, setLikedEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    isLoading: loading,
+    startLoading,
+    stopLoading,
+  } = useLoading(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -46,16 +52,16 @@ export default function LikedEventsPage() {
 
   const fetchLikedEvents = useCallback(async () => {
     try {
-      setLoading(true);
+      startLoading();
       const response = await eventAPI.getMyLikedEvents();
       setLikedEvents(response.data?.liked_event || []);
     } catch (error) {
       console.error("Error fetching liked events:", error);
       showNotification("Gagal memuat event yang disukai", "Error", "error");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [showNotification]);
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
     if (isLoggedIn) fetchLikedEvents();
@@ -181,18 +187,12 @@ export default function LikedEventsPage() {
     return (
       <div className="ui-page">
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="ui-spinner mx-auto size-16"
-            />
-            <p className="mt-6 text-gray-600 font-medium">
-              Memuat event favorit Anda...
-            </p>
-          </div>
-        </div>
+        <LoadingState
+          variant="plain"
+          className="min-h-[60vh]"
+          label="Memuat event favorit Anda..."
+          description="Mengumpulkan event yang telah Anda simpan"
+        />
       </div>
     );
   }
@@ -246,10 +246,7 @@ export default function LikedEventsPage() {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <RefreshCw
-                    size={18}
-                    className={loading ? "animate-spin" : ""}
-                  />
+                  <RefreshCw size={18} />
                   Refresh
                 </Button>
               </div>
