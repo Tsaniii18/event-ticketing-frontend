@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { eventAPI } from "../../services";
 import useSessionUser from "../../hooks/useSessionUser";
@@ -18,10 +18,11 @@ import {
 import { Search, Filter, Calendar, MapPin, X, RefreshCw, Heart, ChevronLeft, ChevronRight, ShoppingBag, Clock, ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 export default function CariEvent() {
   const navigate = useNavigate();
-  const { namaEvent } = useParams();
+  const { searchQuery } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [events, setEvents] = useState([]);
@@ -35,7 +36,7 @@ export default function CariEvent() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [filters, setFilters] = useState({
-    keyword: namaEvent || searchParams.get('keyword') || "",
+    keyword: searchQuery || searchParams.get('keyword') || "",
     date: searchParams.get('date') || "",
     category: searchParams.get('category') || "",
     district: searchParams.get('district') || ""
@@ -92,10 +93,10 @@ export default function CariEvent() {
   }, []);
 
   useEffect(() => {
-    if (namaEvent && namaEvent !== filters.keyword) {
-      setFilters(prev => ({ ...prev, keyword: namaEvent }));
+    if (searchQuery && searchQuery !== filters.keyword) {
+      setFilters(prev => ({ ...prev, keyword: searchQuery }));
     }
-  }, [namaEvent, filters.keyword]);
+  }, [searchQuery, filters.keyword]);
 
   useEffect(() => {
     let result = [...events];
@@ -159,7 +160,7 @@ export default function CariEvent() {
 
   const handleLikeEvent = async (eventId, e) => {
     e.stopPropagation();
-    if (!isLoggedIn) { navigate('/login'); return; }
+    if (!isLoggedIn) { navigate(ROUTES.LOGIN); return; }
 
     const userData = sessionStorage.getItem("user");
     if (!userData) return;
@@ -218,13 +219,13 @@ export default function CariEvent() {
     setStatusFilter(status);
   };
 
-  const handleCardClick = (id) => navigate(`/detailEvent/${id}`);
+  const handleCardClick = (id) => navigate(routeTo.eventDetail(id));
 
   const clearFilters = () => {
     setFilters({ keyword: "", date: "", category: "", district: "" });
     setSortBy("popularitas");
     setStatusFilter("");
-    navigate(`/cariEvent`);
+    navigate(ROUTES.EVENT_SEARCH);
   };
 
   const handleRefresh = () => window.location.reload();

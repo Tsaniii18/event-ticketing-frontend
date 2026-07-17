@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import { Mail, Lock, Shield, ArrowRight, Eye, EyeOff } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
@@ -11,6 +11,7 @@ import {
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ export default function LoginPage() {
 
         showNotification("Login berhasil!", "Sukses", "success");
         setTimeout(() => {
-          navigate("/");
+          navigate(ROUTES.HOME);
         }, 1500);
       }
     } catch (err) {
@@ -161,7 +162,7 @@ export default function LoginPage() {
                 <p className="text-sm text-center text-gray-600">
                   Belum punya Akun?{" "}
                   <Link
-                    to="/daftar"
+                    to={ROUTES.USER_REGISTER}
                     className="text-brand-600 font-semibold hover:underline hover:text-brand-700 transition-colors"
                   >
                     Daftar
@@ -170,7 +171,7 @@ export default function LoginPage() {
                 <p className="text-sm text-center text-gray-600">
                   Ingin mengadakan Event?{" "}
                   <Link
-                    to="/daftarEO"
+                    to={ROUTES.ORGANIZER_REGISTER}
                     className="text-brand-600 font-semibold hover:underline hover:text-brand-700 transition-colors"
                   >
                     Daftar Sebagai Penyelenggara Event

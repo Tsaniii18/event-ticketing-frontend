@@ -27,6 +27,7 @@ import useSessionUser from "../../hooks/useSessionUser";
 import useClickOutside from "../../hooks/useClickOutside";
 import NotificationModal from "../common/NotificationModal";
 import Button from "../common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 export default function Navbar() {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
@@ -73,7 +74,7 @@ export default function Navbar() {
       "Logout Berhasil",
       "success"
     );
-    navigate("/");
+    navigate(ROUTES.HOME);
   };
 
   const handleProfileClick = () => {
@@ -95,7 +96,7 @@ export default function Navbar() {
     }
 
     if (getUserRole() === "user") {
-      navigate("/keranjang");
+      navigate(ROUTES.CART);
     } else {
       showNotification(
         "Fitur ini hanya tersedia untuk User",
@@ -107,32 +108,32 @@ export default function Navbar() {
 
   const handleViewProfile = () => {
     setProfileDropdownOpen(false);
-    navigate("/lihat-profil");
+    navigate(ROUTES.PROFILE);
   };
 
   const handleViewLikedEvents = () => {
     setProfileDropdownOpen(false);
-    navigate("/event-disukai");
+    navigate(ROUTES.LIKED_EVENTS);
   };
 
   const handleViewTransactionHistory = () => {
     setProfileDropdownOpen(false);
-    navigate("/riwayat-transaksi");
+    navigate(ROUTES.TRANSACTION_HISTORY);
   };
 
   const handleViewReportIssue = () => {
     setProfileDropdownOpen(false);
-    navigate("/laporkan-masalah");
+    navigate(ROUTES.REPORT_ISSUE);
   };
 
   const handleVerificationUser = () => {
     setVerificationDropdownOpen(false);
-    navigate("/verifikasiUser");
+    navigate(ROUTES.USER_VERIFICATION);
   };
 
   const handleVerificationEvent = () => {
     setVerificationDropdownOpen(false);
-    navigate("/verifikasi-event");
+    navigate(ROUTES.EVENT_VERIFICATION);
   };
 
   const handleSearchSubmit = (e) => {
@@ -141,7 +142,7 @@ export default function Navbar() {
     const searchQuery = formData.get("search");
 
     if (searchQuery && searchQuery.trim() !== "") {
-      navigate(`/cariEvent/${encodeURIComponent(searchQuery.trim())}`);
+      navigate(routeTo.eventSearch({ searchQuery: searchQuery.trim() }));
       e.target.reset();
       showNotification(`Mencari event: ${searchQuery}`, "Pencarian", "info");
     }
@@ -254,13 +255,13 @@ export default function Navbar() {
 
   const isVerificationActive = () => {
     return (
-      location.pathname === "/verifikasiUser" ||
-      location.pathname === "/verifikasi-event"
+      location.pathname === ROUTES.USER_VERIFICATION ||
+      location.pathname === ROUTES.EVENT_VERIFICATION
     );
   };
 
   const isReportActive = () => {
-    return location.pathname === "/laporanMasalah";
+    return location.pathname === ROUTES.ISSUE_REPORTS;
   };
 
   return (
@@ -288,7 +289,7 @@ export default function Navbar() {
                 <Menu className="w-7 h-7" />
               </Button>
 
-              <Link to="/" className="flex items-center space-x-2">
+              <Link to={ROUTES.HOME} className="flex items-center space-x-2">
                 <div className="bg-white rounded-lg p-1 shadow-md">
                   <Ticket className="w-6 h-6 text-brand-600" />
                 </div>
@@ -485,7 +486,7 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <Link to="/login">
+                <Link to={ROUTES.LOGIN}>
                   <Button unstyled className="rounded-lg bg-navigation-dark px-5 py-2.5 font-bold text-white shadow-md transition-all hover:bg-white hover:text-navigation-dark hover:shadow-lg">
                     Masuk
                   </Button>
@@ -501,14 +502,14 @@ export default function Navbar() {
           <div className="flex items-center">
             <div className="flex items-center">
               <NavLink
-                to="/"
+                to={ROUTES.HOME}
                 className={({ isActive }) => getNavLinkClass(isActive)}
               >
                 <Home size={16} />
                 <span>Beranda</span>
                 <div
                   className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                    location.pathname === "/"
+                    location.pathname === ROUTES.HOME
                       ? "scale-x-100"
                       : "scale-x-0 group-hover:scale-x-100"
                   }`}
@@ -516,14 +517,14 @@ export default function Navbar() {
               </NavLink>
 
               <NavLink
-                to="/cariEvent"
+                to={ROUTES.EVENT_SEARCH}
                 className={({ isActive }) => getNavLinkClass(isActive)}
               >
                 <Search size={16} />
                 <span>Cari Event</span>
                 <div
                   className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                    location.pathname.startsWith("/cariEvent")
+                    location.pathname.startsWith(ROUTES.EVENT_SEARCH)
                       ? "scale-x-100"
                       : "scale-x-0 group-hover:scale-x-100"
                   }`}
@@ -531,14 +532,14 @@ export default function Navbar() {
               </NavLink>
 
               <NavLink
-                to="/kalender-event"
+                to={ROUTES.EVENT_CALENDAR}
                 className={({ isActive }) => getNavLinkClass(isActive)}
               >
                 <CalendarDays size={16} />
                 <span>Kalender Event</span>
                 <div
                   className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                    location.pathname === "/kalender-event"
+                    location.pathname === ROUTES.EVENT_CALENDAR
                       ? "scale-x-100"
                       : "scale-x-0 group-hover:scale-x-100"
                   }`}
@@ -547,14 +548,14 @@ export default function Navbar() {
 
               {isLoggedIn() && getUserRole() === "user" && (
                 <NavLink
-                  to="/tiket-saya"
+                  to={ROUTES.MY_TICKETS}
                   className={({ isActive }) => getNavLinkClass(isActive)}
                 >
                   <Ticket size={16} />
                   <span>Tiket Saya</span>
                   <div
                     className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                      location.pathname === "/tiket-saya"
+                      location.pathname === ROUTES.MY_TICKETS
                         ? "scale-x-100"
                         : "scale-x-0 group-hover:scale-x-100"
                     }`}
@@ -565,28 +566,28 @@ export default function Navbar() {
               {isLoggedIn() && getUserRole() === "organizer" && (
                 <>
                   <NavLink
-                    to="/daftar-event"
+                    to={ROUTES.EVENT_REGISTER}
                     className={({ isActive }) => getNavLinkClass(isActive)}
                   >
                     <Calendar size={16} />
                     <span>Buat Event</span>
                     <div
                       className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                        location.pathname === "/daftar-event"
+                        location.pathname === ROUTES.EVENT_REGISTER
                           ? "scale-x-100"
                           : "scale-x-0 group-hover:scale-x-100"
                       }`}
                     />
                   </NavLink>
                   <NavLink
-                    to="/event-saya"
+                    to={ROUTES.MY_EVENTS}
                     className={({ isActive }) => getNavLinkClass(isActive)}
                   >
                     <Calendar size={16} />
                     <span>Event Saya</span>
                     <div
                       className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                        location.pathname === "/event-saya"
+                        location.pathname === ROUTES.MY_EVENTS
                           ? "scale-x-100"
                           : "scale-x-0 group-hover:scale-x-100"
                       }`}
@@ -598,7 +599,7 @@ export default function Navbar() {
               {isLoggedIn() && getUserRole() === "admin" && (
                 <>
                   <NavLink
-                    to="/laporanMasalah"
+                    to={ROUTES.ISSUE_REPORTS}
                     className={({ isActive }) => getNavLinkClass(isActive)}
                   >
                     <FileText size={16} />
@@ -641,14 +642,14 @@ export default function Navbar() {
                         <Button unstyled
                           onClick={handleVerificationUser}
                           className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-brand-50 transition-colors group ${
-                            location.pathname === "/verifikasiUser"
+                            location.pathname === ROUTES.USER_VERIFICATION
                               ? "bg-brand-50 text-brand-600"
                               : "text-gray-700"
                           }`}
                         >
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              location.pathname === "/verifikasiUser"
+                              location.pathname === ROUTES.USER_VERIFICATION
                                 ? "bg-brand-100"
                                 : "bg-gray-100 group-hover:bg-brand-100"
                             } transition-colors`}
@@ -661,7 +662,7 @@ export default function Navbar() {
                               Verifikasi akun organizer
                             </p>
                           </div>
-                          {location.pathname === "/verifikasiUser" && (
+                          {location.pathname === ROUTES.USER_VERIFICATION && (
                             <CheckCircle className="w-4 h-4 text-green-500" />
                           )}
                         </Button>
@@ -669,14 +670,14 @@ export default function Navbar() {
                         <Button unstyled
                           onClick={handleVerificationEvent}
                           className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-brand-50 transition-colors group ${
-                            location.pathname === "/verifikasi-event"
+                            location.pathname === ROUTES.EVENT_VERIFICATION
                               ? "bg-brand-50 text-brand-600"
                               : "text-gray-700"
                           }`}
                         >
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              location.pathname === "/verifikasi-event"
+                              location.pathname === ROUTES.EVENT_VERIFICATION
                                 ? "bg-brand-100"
                                 : "bg-gray-100 group-hover:bg-brand-100"
                             } transition-colors`}
@@ -691,7 +692,7 @@ export default function Navbar() {
                               Verifikasi event baru
                             </p>
                           </div>
-                          {location.pathname === "/verifikasi-event" && (
+                          {location.pathname === ROUTES.EVENT_VERIFICATION && (
                             <CheckCircle className="w-4 h-4 text-green-500" />
                           )}
                         </Button>
@@ -767,7 +768,7 @@ export default function Navbar() {
             ) : (
               <div className="text-center py-4">
                 <p className="text-brand-100 mb-3">Belum login?</p>
-                <Link to="/login">
+                <Link to={ROUTES.LOGIN}>
                   <Button unstyled
                     className="bg-white text-brand-600 px-6 py-2 rounded-lg font-bold hover:bg-brand-50 transition-all"
                     onClick={() => setMobileMenuIsOpen(false)}
@@ -781,7 +782,7 @@ export default function Navbar() {
 
           <div className="p-4 space-y-1">
             <NavLink
-              to="/"
+              to={ROUTES.HOME}
               className={({ isActive }) =>
                 `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                   isActive
@@ -796,7 +797,7 @@ export default function Navbar() {
             </NavLink>
 
             <NavLink
-              to="/cariEvent"
+              to={ROUTES.EVENT_SEARCH}
               className={({ isActive }) =>
                 `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                   isActive
@@ -811,7 +812,7 @@ export default function Navbar() {
             </NavLink>
 
             <NavLink
-              to="/kalender-event"
+              to={ROUTES.EVENT_CALENDAR}
               className={({ isActive }) =>
                 `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                   isActive
@@ -827,7 +828,7 @@ export default function Navbar() {
 
             {isLoggedIn() && getUserRole() === "user" && (
               <NavLink
-                to="/event-disukai"
+                to={ROUTES.LIKED_EVENTS}
                 className={({ isActive }) =>
                   `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                     isActive
@@ -844,7 +845,7 @@ export default function Navbar() {
 
             {isLoggedIn() && getUserRole() === "user" && (
               <NavLink
-                to="/tiket-saya"
+                to={ROUTES.MY_TICKETS}
                 className={({ isActive }) =>
                   `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                     isActive
@@ -862,7 +863,7 @@ export default function Navbar() {
             {isLoggedIn() && getUserRole() === "organizer" && (
               <>
                 <NavLink
-                  to="/daftar-event"
+                  to={ROUTES.EVENT_REGISTER}
                   className={({ isActive }) =>
                     `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                       isActive
@@ -876,7 +877,7 @@ export default function Navbar() {
                   <span className="font-semibold">Buat Event</span>
                 </NavLink>
                 <NavLink
-                  to="/event-saya"
+                  to={ROUTES.MY_EVENTS}
                   className={({ isActive }) =>
                     `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                       isActive
@@ -895,7 +896,7 @@ export default function Navbar() {
             {isLoggedIn() && getUserRole() === "admin" && (
               <>
                 <NavLink
-                  to="/laporanMasalah"
+                  to={ROUTES.ISSUE_REPORTS}
                   className={({ isActive }) =>
                     `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                       isActive
@@ -914,7 +915,7 @@ export default function Navbar() {
                     VERIFIKASI
                   </div>
                   <NavLink
-                    to="/verifikasiUser"
+                    to={ROUTES.USER_VERIFICATION}
                     className={({ isActive }) =>
                       `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                         isActive
@@ -928,7 +929,7 @@ export default function Navbar() {
                     <span className="font-semibold">Verifikasi User</span>
                   </NavLink>
                   <NavLink
-                    to="/verifikasi-event"
+                    to={ROUTES.EVENT_VERIFICATION}
                     className={({ isActive }) =>
                       `flex items-center space-x-3 p-4 rounded-lg transition-all hover:scale-[1.02] ${
                         isActive

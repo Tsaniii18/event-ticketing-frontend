@@ -8,7 +8,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { eventAPI } from "../../services";
 import TicketCategoryModal from "../../components/events/TicketCategoryModal";
 import NotificationModal from "../../components/common/NotificationModal";
@@ -30,6 +30,7 @@ import {
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function EventRegister() {
   const navigate = useNavigate();
@@ -342,7 +343,7 @@ const handleCloseModal = () => {
           "Sukses",
           "success"
         );
-        setTimeout(() => navigate("/"), 2000);
+        setTimeout(() => navigate(ROUTES.HOME), 2000);
       }
     } catch (error) {
       console.error("Error creating event:", error);
@@ -868,7 +869,7 @@ const handleCloseModal = () => {
               >
                 <Button
                   type="button"
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate(ROUTES.HOME)}
                   variant="secondary" className="flex-1 px-6 py-3"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}

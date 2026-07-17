@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { cartAPI, paymentAPI } from "../../services";
 import useNotification from "../../hooks/useNotification";
@@ -28,6 +28,7 @@ import {
   transformCartData,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function KeranjangPage() {
   const navigate = useNavigate();
@@ -137,7 +138,7 @@ export default function KeranjangPage() {
       if (response.data) {
         showNotification("Tiket gratis berhasil diklaim!", "Sukses", "success");
         await fetchCart();
-        navigate('/tiket-saya');
+        navigate(ROUTES.MY_TICKETS);
       } else {
         throw new Error("Gagal memproses tiket gratis");
       }
@@ -606,7 +607,7 @@ export default function KeranjangPage() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Keranjang Kosong</h3>
                 <p className="text-gray-600 mb-8">Belum ada tiket di keranjang belanja Anda</p>
                 <Button
-                  onClick={() => navigate('/cariEvent')}
+                  onClick={() => navigate(ROUTES.EVENT_SEARCH)}
                   variant="primary" className="rounded-xl px-6 py-4"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

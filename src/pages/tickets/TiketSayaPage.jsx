@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import QRCodeGenerator from "../../components/common/QRCodeGenerator";
 import NotificationModal from "../../components/common/NotificationModal";
@@ -9,6 +9,7 @@ import { Search, X, Pencil, Check, ChevronDown, Tag, MapPin, Clock, XCircle, Tic
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { TICKET_STATUS_CONFIG as STATUS_CONFIG } from "../../utils";
 import Button from "../../components/common/Button";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function TiketSaya() {
   const navigate = useNavigate();
@@ -398,7 +399,7 @@ export default function TiketSaya() {
             <h3 className="text-xl font-bold text-gray-900 mb-2">Belum Ada Tiket</h3>
             <p className="text-gray-600 mb-6 text-sm">Anda belum memiliki tiket. Jelajahi event menarik sekarang!</p>
             <Button
-              onClick={() => navigate('/cariEvent')}
+              onClick={() => navigate(ROUTES.EVENT_SEARCH)}
               variant="primary" className="w-full rounded-xl py-3"
               whileTap={{ scale: 0.98 }}
             >

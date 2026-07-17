@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { feedbackAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";

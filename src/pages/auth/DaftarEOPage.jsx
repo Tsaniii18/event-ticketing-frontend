@@ -22,6 +22,7 @@ import {
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function DaftarEOPage() {
   const [formData, setFormData] = useState({
@@ -172,7 +173,7 @@ export default function DaftarEOPage() {
           "success"
         );
         setTimeout(() => {
-          navigate("/login");
+          navigate(ROUTES.LOGIN);
         }, 2000);
       }
     } catch (err) {
@@ -594,7 +595,7 @@ export default function DaftarEOPage() {
                 <p className="text-sm text-center text-gray-600">
                   Ingin mendaftar sebagai peserta biasa?{" "}
                   <Link
-                    to="/daftar"
+                    to={ROUTES.USER_REGISTER}
                     className="text-brand-600 font-semibold hover:underline hover:text-brand-700 transition-colors"
                   >
                     Daftar Sebagai Peserta
@@ -603,7 +604,7 @@ export default function DaftarEOPage() {
                 <p className="text-sm text-center text-gray-600 mt-2">
                   Sudah punya akun?{" "}
                   <Link
-                    to="/login"
+                    to={ROUTES.LOGIN}
                     className="text-brand-600 font-semibold hover:underline hover:text-brand-700 transition-colors"
                   >
                     Masuk di sini

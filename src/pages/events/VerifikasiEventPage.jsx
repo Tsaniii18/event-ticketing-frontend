@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { eventAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
@@ -7,6 +7,7 @@ import useNotification from "../../hooks/useNotification";
 import { Search, Filter, Calendar, X, Eye, CheckCircle, XCircle, RefreshCw, FileText, User, MapPin, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
+import { routeTo } from "../../utils/routeConstants";
 
 export default function VerifikasiEventPage() {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ export default function VerifikasiEventPage() {
   };
 
   const handleViewDetails = (event) => {
-    navigate(`/detailEvent/${event.event_id}`);
+    navigate(routeTo.eventDetail(event.event_id));
   };
 
   const handleRefresh = () => {

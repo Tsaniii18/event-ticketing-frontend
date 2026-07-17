@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import {
   ChevronLeft,
@@ -26,6 +26,7 @@ import {
   SCROLLBAR_HIDE_STYLE as scrollbarHideStyle,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -177,7 +178,7 @@ export default function LandingPage() {
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
       return;
     }
 
@@ -285,12 +286,12 @@ export default function LandingPage() {
 
   const handleBannerClick = (eventId) => {
     if (!isDragging && Math.abs(dragX) < 10 && !isAnimating) {
-      navigate(`/detailEvent/${eventId}`);
+      navigate(routeTo.eventDetail(eventId));
     }
   };
 
   const handleCategoryClick = (category) => {
-    navigate(`/carievent?category=${encodeURIComponent(category)}`);
+    navigate(routeTo.eventSearch({ category: category }));
   };
 
   const availableCategories = useMemo(() => {
@@ -451,7 +452,7 @@ export default function LandingPage() {
                   Jelajahi Kategori
                 </h2>
                 <Button
-                  onClick={() => navigate("/cariEvent")}
+                  onClick={() => navigate(ROUTES.EVENT_SEARCH)}
                   variant="primary" className="px-3 py-1.5 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-base"
                 >
                   Lihat Semua
@@ -517,7 +518,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <Button unstyled
-                onClick={() => navigate("/carievent?sort=terlaris")}
+                onClick={() => navigate(routeTo.eventSearch({ sort: "terlaris" }))}
                 className="flex items-center gap-1 sm:gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-colors text-sm sm:text-base"
               >
                 Lihat Semua
@@ -556,7 +557,7 @@ export default function LandingPage() {
                       <EventCard
                         event={event}
                         index={index}
-                        onClick={() => navigate(`/detailEvent/${event.id}`)}
+                        onClick={() => navigate(routeTo.eventDetail(event.id))}
                         formatRupiah={formatRupiah}
                         formatNumber={formatNumber}
                         getCategoryData={getCategoryData}
@@ -605,7 +606,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <Button unstyled
-                onClick={() => navigate("/carievent?sort=popularitas")}
+                onClick={() => navigate(routeTo.eventSearch({ sort: "popularitas" }))}
                 className="flex items-center gap-1 sm:gap-2 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-colors text-sm sm:text-base"
               >
                 Lihat Semua
@@ -644,7 +645,7 @@ export default function LandingPage() {
                       <EventCard
                         event={event}
                         index={index}
-                        onClick={() => navigate(`/detailEvent/${event.id}`)}
+                        onClick={() => navigate(routeTo.eventDetail(event.id))}
                         formatRupiah={formatRupiah}
                         formatNumber={formatNumber}
                         getCategoryData={getCategoryData}
@@ -694,7 +695,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <Button
-                  onClick={() => navigate("/kalender-event")}
+                  onClick={() => navigate(ROUTES.EVENT_CALENDAR)}
                   variant="primary" className="px-3 py-1.5 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-base"
                 >
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -709,7 +710,7 @@ export default function LandingPage() {
                     key={event.id}
                     event={event}
                     index={index}
-                    onClick={() => navigate(`/detailEvent/${event.id}`)}
+                    onClick={() => navigate(routeTo.eventDetail(event.id))}
                     formatRupiah={formatRupiah}
                     formatNumber={formatNumber}
                     getCategoryData={getCategoryData}
@@ -754,7 +755,7 @@ export default function LandingPage() {
                           key={event.id}
                           event={event}
                           index={colIndex * 2 + index}
-                          onClick={() => navigate(`/detailEvent/${event.id}`)}
+                          onClick={() => navigate(routeTo.eventDetail(event.id))}
                           formatRupiah={formatRupiah}
                           formatNumber={formatNumber}
                           getCategoryData={getCategoryData}
@@ -796,13 +797,13 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button unstyled
-                  onClick={() => navigate("/carievent")}
+                  onClick={() => navigate(ROUTES.EVENT_SEARCH)}
                   className="bg-white text-brand-600 hover:bg-brand-50 px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-colors text-sm sm:text-base"
                 >
                   Jelajahi Event
                 </Button>
                 <Button unstyled
-                  onClick={() => navigate("/kalender-event")}
+                  onClick={() => navigate(ROUTES.EVENT_CALENDAR)}
                   className="bg-brand-500 hover:bg-brand-400 text-white px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-colors flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
                 >
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />

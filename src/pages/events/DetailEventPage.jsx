@@ -1,6 +1,5 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import {
   MapPin,
@@ -42,6 +41,7 @@ import {
   TicketItem,
 } from "../../components/events/EventTicketSelection";
 import Button from "../../components/common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 const formatDescriptionWithNewlines = (text) => {
   if (!text) return "";
@@ -479,7 +479,7 @@ function LoginPrompt({ onLogin }) {
 }
 
 export default function EventDetail() {
-  const { id } = useParams();
+  const { eventId } = useParams();
   const navigate = useNavigate();
   const { notification, showNotification, hideNotification } =
     useNotification();
@@ -516,7 +516,7 @@ export default function EventDetail() {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.get(`/api/event/${id}`);
+        const response = await api.get(`/api/event/${eventId}`);
         const eventData = response.data;
 
         setEvent(eventData);
@@ -583,34 +583,34 @@ export default function EventDetail() {
       }
     };
 
-    if (id) {
+    if (eventId) {
       fetchEventDetail();
     }
-  }, [id, showNotification]);
+  }, [eventId, showNotification]);
 
   useEffect(() => {
     const fetchLikedStatus = async () => {
-      if (!isLoggedIn || !isRegularUser || !id) return;
+      if (!isLoggedIn || !isRegularUser || !eventId) return;
 
       try {
         const response = await eventAPI.getMyLikedEvents();
         const likedEventIds = (response.data?.liked_event || []).map(
           (e) => e.event_id
         );
-        setIsLiked(likedEventIds.includes(id));
+        setIsLiked(likedEventIds.includes(eventId));
       } catch (err) {
         console.error("Error fetching liked status:", err);
       }
     };
 
     fetchLikedStatus();
-  }, [isLoggedIn, isRegularUser, id]);
+  }, [isLoggedIn, isRegularUser, eventId]);
 
   const handleLikeEvent = async (e) => {
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
       return;
     }
 
@@ -629,7 +629,7 @@ export default function EventDetail() {
     setTotalLikes((prev) => (isLiked ? Math.max(0, prev - 1) : prev + 1));
 
     try {
-      const response = await eventAPI.likeEvent(id);
+      const response = await eventAPI.likeEvent(eventId);
 
       if (response.data?.event_total_like !== undefined) {
         setTotalLikes(response.data.event_total_like);
@@ -706,7 +706,7 @@ export default function EventDetail() {
         setTickets((prev) => prev.map((t) => ({ ...t, qty: 0 })));
 
         if (failedItems.length === 0) {
-          navigate("/keranjang");
+          navigate(ROUTES.CART);
         }
       }
 
@@ -760,7 +760,7 @@ export default function EventDetail() {
           `Event ${action === "approve" ? "disetujui" : "ditolak"} oleh admin`,
       };
 
-      await eventAPI.verifyEvent(id, statusData);
+      await eventAPI.verifyEvent(eventId, statusData);
 
       showNotification(
         `Event berhasil ${action === "approve" ? "disetujui" : "ditolak"}!`,
@@ -771,7 +771,7 @@ export default function EventDetail() {
       setShowVerificationModal(false);
       setApprovalComment("");
 
-      const refreshedResponse = await api.get(`/api/event/${id}`);
+      const refreshedResponse = await api.get(`/api/event/${eventId}`);
       setEvent(refreshedResponse.data);
     } catch (error) {
       console.error("Error verifying event:", error);
@@ -801,7 +801,7 @@ export default function EventDetail() {
   };
 
   const handleLoginRedirect = () => {
-    navigate("/login");
+    navigate(ROUTES.LOGIN);
   };
 
   if (loading) {
@@ -1104,7 +1104,7 @@ export default function EventDetail() {
                           </p>
                           {isOwner && (
                             <Button
-                              onClick={() => navigate(`/edit-event/${id}`)}
+                              onClick={() => navigate(routeTo.eventEdit(eventId))}
                               variant="primary" className="px-6 shadow-lg hover:shadow-xl sm:px-8 sm:py-3 sm:text-base"
                             >
                               Tambah Tiket

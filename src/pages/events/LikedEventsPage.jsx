@@ -20,6 +20,7 @@ import useNotification from "../../hooks/useNotification";
 import { eventAPI } from "../../services";
 import { CATEGORIES, getCategoryColor, getParentCategory } from "../../utils";
 import Button from "../../components/common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 export default function LikedEventsPage() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function LikedEventsPage() {
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     if (!token) {
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
       return;
     }
     setIsLoggedIn(true);
@@ -231,7 +232,7 @@ export default function LikedEventsPage() {
               </div>
               <div className="flex gap-3">
                 <Button
-                  onClick={() => navigate("/cariEvent")}
+                  onClick={() => navigate(ROUTES.EVENT_SEARCH)}
                   variant="primary"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -429,7 +430,7 @@ export default function LikedEventsPage() {
                     key={event.event_id}
                     event={event}
                     index={index}
-                    onClick={() => navigate(`/detailEvent/${event.event_id}`)}
+                    onClick={() => navigate(routeTo.eventDetail(event.event_id))}
                     onUnlike={(clickEvent) =>
                       handleUnlikeEvent(event.event_id, clickEvent)
                     }

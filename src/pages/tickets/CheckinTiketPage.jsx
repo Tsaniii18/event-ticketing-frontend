@@ -36,6 +36,7 @@ import {
   TimerOff
 } from "lucide-react";
 import Button from "../../components/common/Button";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function CheckinTiketPage() {
   const { eventId } = useParams();
@@ -59,13 +60,13 @@ export default function CheckinTiketPage() {
   useEffect(() => {
     if (!user) {
       showNotification("Silakan login terlebih dahulu", "Akses Ditolak", "warning");
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
       return;
     }
 
     if (!["organizer", "admin"].includes(user.role)) {
       showNotification("Anda tidak memiliki akses ke halaman ini", "Akses Ditolak", "error");
-      navigate("/");
+      navigate(ROUTES.HOME);
       return;
     }
 

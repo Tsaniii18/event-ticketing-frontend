@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 export default function CalendarEventPage() {
   const navigate = useNavigate();
@@ -133,7 +134,7 @@ export default function CalendarEventPage() {
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
       return;
     }
 
@@ -324,7 +325,7 @@ export default function CalendarEventPage() {
   };
 
   const handleEventClick = (eventId) => {
-    navigate(`/detailEvent/${eventId}`);
+    navigate(routeTo.eventDetail(eventId));
   };
 
   const clearFilters = () => {

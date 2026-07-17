@@ -55,6 +55,7 @@ export {
   readSession,
   readStoredUser,
 } from "./sessionUtils";
+export { ROUTES, routeTo } from "./routeConstants";
 export {
   EDIT_EVENT_STATUS_STYLES,
   EVENT_DETAIL_STATUS_LABELS,

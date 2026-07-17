@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { userAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
@@ -11,6 +11,7 @@ import {
   USER_VERIFICATION_STATUS_LABELS,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import { routeTo } from "../../utils/routeConstants";
 
 export default function VerifikasiUserPage() {
   const navigate = useNavigate();
@@ -425,7 +426,7 @@ export default function VerifikasiUserPage() {
 
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => navigate(`/tinjauUser/${user.user_id}`)}
+                          onClick={() => navigate(routeTo.userReview(user.user_id))}
                           variant="primary" className="min-w-30 justify-center"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}

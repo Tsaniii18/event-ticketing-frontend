@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { userAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
@@ -14,9 +14,10 @@ import {
   Shield, ArrowLeft, CheckCircle, XCircle, Clock
 } from "lucide-react";
 import Button from "../../components/common/Button";
+import { ROUTES } from "../../utils/routeConstants";
 
 export default function TinjauUserDetailPage() {
-  const { id } = useParams();
+  const { userId } = useParams();
   const navigate = useNavigate();
   const { notification, showNotification, hideNotification } = useNotification();
 
@@ -28,7 +29,7 @@ export default function TinjauUserDetailPage() {
   const fetchUserDetail = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await userAPI.getUserById(id);
+      const response = await userAPI.getUserById(userId);
       setUser(response.data);
     } catch (error) {
       console.error("Error fetching user detail:", error);
@@ -36,7 +37,7 @@ export default function TinjauUserDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, showNotification]);
+  }, [userId, showNotification]);
 
   useEffect(() => {
     fetchUserDetail();
@@ -48,7 +49,7 @@ export default function TinjauUserDetailPage() {
     try {
       setSubmitting(true);
 
-      await userAPI.verifyOrganizer(id, {
+      await userAPI.verifyOrganizer(userId, {
         status: status,
         comment: comment || `User ${status === "approved" ? "disetujui" : "ditolak"}`,
       });
@@ -60,7 +61,7 @@ export default function TinjauUserDetailPage() {
       );
 
       setTimeout(() => {
-        navigate("/verifikasiUser");
+        navigate(ROUTES.USER_VERIFICATION);
       }, 1500);
     } catch (error) {
       console.error("Error verifying user:", error);
@@ -131,7 +132,7 @@ export default function TinjauUserDetailPage() {
                   <p className="text-brand-100 mt-1">Verifikasi dan tinjau data pengguna organizer</p>
                 </div>
                 <Button unstyled
-                  onClick={() => navigate("/verifikasiUser")}
+                  onClick={() => navigate(ROUTES.USER_VERIFICATION)}
                   className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all font-medium backdrop-blur-sm"
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
@@ -360,7 +361,7 @@ export default function TinjauUserDetailPage() {
                   className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200"
                 >
                   <Button
-                    onClick={() => navigate("/verifikasiUser")}
+                    onClick={() => navigate(ROUTES.USER_VERIFICATION)}
                     variant="muted" className="px-6 py-3"
                     disabled={submitting}
                     whileHover={{ scale: 1.02 }}
@@ -420,7 +421,7 @@ export default function TinjauUserDetailPage() {
                 </div>
                 <p className="text-gray-600 text-lg mb-4">Pengguna tidak ditemukan.</p>
                 <Button
-                  onClick={() => navigate("/verifikasiUser")}
+                  onClick={() => navigate(ROUTES.USER_VERIFICATION)}
                   variant="primary" className="mx-auto px-6 py-3"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

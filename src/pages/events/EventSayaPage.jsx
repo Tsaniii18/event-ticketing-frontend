@@ -34,6 +34,7 @@ import {
   PAGE_ITEM_VARIANTS as itemVariants,
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
+import { routeTo } from "../../utils/routeConstants";
 
 export default function EventSayaPage() {
   const [events, setEvents] = useState([]);
@@ -550,7 +551,7 @@ export default function EventSayaPage() {
                                 title="Lihat rincian event"
                                 className="min-w-25"
                                 onClick={() =>
-                                  navigate(`/detailEvent/${event.event_id}`)
+                                  navigate(routeTo.eventDetail(event.event_id))
                                 }
                               >
                                 <Eye size={16} />
@@ -565,7 +566,7 @@ export default function EventSayaPage() {
                                   title="Edit event"
                                   className="min-w-25"
                                   onClick={() =>
-                                    navigate(`/edit-event/${event.event_id}`)
+                                    navigate(routeTo.eventEdit(event.event_id))
                                   }
                                 >
                                   <Pencil size={16} />
@@ -582,7 +583,7 @@ export default function EventSayaPage() {
                                   title="Lihat laporan"
                                   className="min-w-25"
                                   onClick={() =>
-                                    navigate(`/laporan/${event.event_id}`)
+                                    navigate(routeTo.eventReport(event.event_id))
                                   }
                                 >
                                   <BarChart3 size={16} />
@@ -598,7 +599,7 @@ export default function EventSayaPage() {
                                   title="Scan tiket"
                                   className="min-w-25 bg-gray-800 text-white hover:bg-gray-900 hover:text-white"
                                   onClick={() =>
-                                    navigate(`/scan/${event.event_id}`)
+                                    navigate(routeTo.ticketCheckIn(event.event_id))
                                   }
                                 >
                                   <QrCode size={16} />

@@ -23,9 +23,10 @@ import {
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
 import Button from "../../components/common/Button";
+import { ROUTES, routeTo } from "../../utils/routeConstants";
 
 export default function EditEventPage() {
-  const { id } = useParams();
+  const { eventId } = useParams();
   const navigate = useNavigate();
   const { notification, showNotification, hideNotification } = useNotification();
   const {
@@ -89,7 +90,7 @@ export default function EditEventPage() {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        const response = await eventAPI.getEvent(id);
+        const response = await eventAPI.getEvent(eventId);
         const eventData = response.data;
 
         const token = sessionStorage.getItem('token');
@@ -99,13 +100,13 @@ export default function EditEventPage() {
 
           if (!isEventOwner) {
             showNotification("Anda tidak memiliki akses untuk mengedit event ini", "Error", "error");
-            navigate(`/detailEvent/${id}`);
+            navigate(routeTo.eventDetail(eventId));
             return;
           }
 
           if (eventData.status !== 'pending' && eventData.status !== 'rejected') {
             showNotification("Event hanya dapat diedit ketika status pending atau rejected", "Error", "error");
-            navigate(`/detailEvent/${id}`);
+            navigate(routeTo.eventDetail(eventId));
             return;
           }
         }
@@ -167,16 +168,16 @@ export default function EditEventPage() {
       } catch (error) {
         console.error("Error fetching event data:", error);
         showNotification("Gagal memuat data event", "Error", "error");
-        navigate("/event-saya");
+        navigate(ROUTES.MY_EVENTS);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
+    if (eventId) {
       fetchEventData();
     }
-  }, [id, navigate, showNotification]);
+  }, [eventId, navigate, showNotification]);
 
   const validateTicketDates = (ticketStart, ticketEnd) => {
     if (!formData.date_start || !formData.date_end) {
@@ -507,11 +508,11 @@ export default function EditEventPage() {
         submitData.append("ticket_categories", JSON.stringify(ticketCategories));
       }
 
-      const response = await eventAPI.updateEvent(id, submitData);
+      const response = await eventAPI.updateEvent(eventId, submitData);
 
       if (response.data) {
         showNotification("Event berhasil diperbarui!", "Sukses", "success");
-        setTimeout(() => navigate(`/detailEvent/${id}`), 2000);
+        setTimeout(() => navigate(routeTo.eventDetail(eventId)), 2000);
       }
     } catch (error) {
       console.error("Error updating event:", error);
@@ -619,7 +620,7 @@ export default function EditEventPage() {
             >
               <div className="flex items-center gap-4">
                 <Button unstyled
-                  onClick={() => navigate(`/detailEvent/${id}`)}
+                  onClick={() => navigate(routeTo.eventDetail(eventId))}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors p-2 rounded-lg hover:bg-gray-100"
                   whileHover={{ scale: 1.05, x: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -1017,7 +1018,7 @@ export default function EditEventPage() {
               >
                 <Button
                   type="button"
-                  onClick={() => navigate(`/event-saya`)}
+                  onClick={() => navigate(ROUTES.MY_EVENTS)}
                   variant="secondary" className="flex-1 px-6 py-3"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}

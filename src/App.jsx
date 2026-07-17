@@ -1,5 +1,5 @@
 import { createElement, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PageLoader from "./components/common/PageLoader";
 import ProtectedRouteWrapper from "./components/layout/ProtectedRouteWrapper";
 import { routes } from "./routes";
@@ -10,9 +10,9 @@ function App() {
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {routes.map(({ path, Page, protected: requiresLogin, roles }) => {
+            {routes.map(({ path, Page, requiresAuth, roles }) => {
               const page = createElement(Page);
-              const element = requiresLogin || roles
+              const element = requiresAuth || roles
                 ? <ProtectedRouteWrapper allowedRoles={roles}>{page}</ProtectedRouteWrapper>
                 : page;
 

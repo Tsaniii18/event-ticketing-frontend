@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import { ROUTES } from "./utils/routeConstants";
 
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
 const DaftarPage = lazy(() => import("./pages/auth/DaftarPage"));
@@ -28,26 +29,26 @@ const VerifikasiUserPage = lazy(() => import("./pages/users/VerifikasiUserPage")
 const TinjauUserDetailPage = lazy(() => import("./pages/users/TinjauUserDetailPage"));
 
 export const routes = [
-  { path: "/", Page: LandingPage },
-  { path: "/login", Page: LoginPage },
-  { path: "/daftar", Page: DaftarPage },
-  { path: "/daftarEO", Page: DaftarEOPage },
-  { path: "/cariEvent/:namaEvent?", Page: CariEventPage },
-  { path: "/detailEvent/:id", Page: DetailEventPage },
-  { path: "/kalender-event", Page: CalendarEventPage },
-  { path: "/lihat-profil", Page: LihatProfilPage, protected: true },
-  { path: "/keranjang", Page: KeranjangPage, roles: ["user"] },
-  { path: "/tiket-saya", Page: TiketSayaPage, roles: ["user"] },
-  { path: "/riwayat-transaksi", Page: RiwayatPembelianPage, roles: ["user"] },
-  { path: "/event-disukai", Page: LikedEventsPage, roles: ["user"] },
-  { path: "/laporkan-masalah", Page: LaporkanMasalahPage, roles: ["user", "organizer"] },
-  { path: "/event-saya", Page: EventSayaPage, roles: ["organizer"] },
-  { path: "/daftar-event", Page: EventRegisterPage, roles: ["organizer"] },
-  { path: "/edit-event/:id", Page: EditEventPage, roles: ["organizer"] },
-  { path: "/laporan/:eventId", Page: LaporanEventPage, roles: ["organizer"] },
-  { path: "/scan/:eventId", Page: CheckinTiketPage, roles: ["organizer"] },
-  { path: "/verifikasi-event", Page: VerifikasiEventPage, roles: ["admin"] },
-  { path: "/verifikasiUser", Page: VerifikasiUserPage, roles: ["admin"] },
-  { path: "/tinjauUser/:id", Page: TinjauUserDetailPage, roles: ["admin"] },
-  { path: "/laporanMasalah", Page: LaporanMasalahPage, roles: ["admin"] },
+  { path: ROUTES.HOME, Page: LandingPage },
+  { path: ROUTES.LOGIN, Page: LoginPage },
+  { path: ROUTES.USER_REGISTER, Page: DaftarPage },
+  { path: ROUTES.ORGANIZER_REGISTER, Page: DaftarEOPage },
+  { path: ROUTES.EVENT_SEARCH_PATTERN, Page: CariEventPage },
+  { path: ROUTES.EVENT_DETAIL, Page: DetailEventPage },
+  { path: ROUTES.EVENT_CALENDAR, Page: CalendarEventPage },
+  { path: ROUTES.PROFILE, Page: LihatProfilPage, requiresAuth: true },
+  { path: ROUTES.CART, Page: KeranjangPage, roles: ["user"] },
+  { path: ROUTES.MY_TICKETS, Page: TiketSayaPage, roles: ["user"] },
+  { path: ROUTES.TRANSACTION_HISTORY, Page: RiwayatPembelianPage, roles: ["user"] },
+  { path: ROUTES.LIKED_EVENTS, Page: LikedEventsPage, roles: ["user"] },
+  { path: ROUTES.REPORT_ISSUE, Page: LaporkanMasalahPage, roles: ["user", "organizer"] },
+  { path: ROUTES.MY_EVENTS, Page: EventSayaPage, roles: ["organizer"] },
+  { path: ROUTES.EVENT_REGISTER, Page: EventRegisterPage, roles: ["organizer"] },
+  { path: ROUTES.EVENT_EDIT, Page: EditEventPage, roles: ["organizer"] },
+  { path: ROUTES.EVENT_REPORT, Page: LaporanEventPage, roles: ["organizer"] },
+  { path: ROUTES.TICKET_CHECK_IN, Page: CheckinTiketPage, roles: ["organizer"] },
+  { path: ROUTES.EVENT_VERIFICATION, Page: VerifikasiEventPage, roles: ["admin"] },
+  { path: ROUTES.USER_VERIFICATION, Page: VerifikasiUserPage, roles: ["admin"] },
+  { path: ROUTES.USER_REVIEW, Page: TinjauUserDetailPage, roles: ["admin"] },
+  { path: ROUTES.ISSUE_REPORTS, Page: LaporanMasalahPage, roles: ["admin"] },
 ];
