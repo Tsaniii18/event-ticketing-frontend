@@ -3,7 +3,7 @@ import {
   getStoredUserRole,
   hasStoredUser,
 } from "../../utils";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 
 const ProtectedRouteWrapper = ({
   children,

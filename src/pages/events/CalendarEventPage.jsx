@@ -4,19 +4,31 @@ import Navbar from "../../components/layout/Navbar";
 import { eventAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
+import useSessionUser from "../../hooks/useSessionUser";
 import {
-  CATEGORIES,
+  buildCalendarDays,
+  EVENT_PARENT_CATEGORIES,
   CATEGORY_COLORS,
   DAY_NAMES as dayNames,
   DAY_NAMES_FULL as dayNamesFull,
   formatCompactNumber as formatNumber,
+  formatDayMonth,
   formatOptionalRupiah as formatRupiah,
   formatOptionalShortDateRange as formatDateRange,
   formatShortDate as formatDate,
+  formatTime,
+  filterCalendarEvents,
+  getEventsForCalendarDate,
+  getEventsForCalendarMonth,
+  getLikedEventIds,
   getCategoryColor,
   getParentCategory,
   getEventMinimumPrice as getMinPrice,
+  isSameCalendarDate,
+  isTodayDate,
   MONTH_NAMES as monthNames,
+  toggleSetValue,
+  updateEventLikeCount,
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
 import {
@@ -38,7 +50,7 @@ import {
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -57,8 +69,8 @@ export default function CalendarEventPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [viewMode, setViewMode] = useState("calendar");
   const [likedEvents, setLikedEvents] = useState(new Set());
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const { user: sessionUser, isAuthenticated: isLoggedIn } = useSessionUser();
+  const userRole = sessionUser?.role || null;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -69,31 +81,11 @@ export default function CalendarEventPage() {
   const [showMobileEventModal, setShowMobileEventModal] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUserRole(payload.role);
-      } catch (error) {
-        console.error("Error parsing token:", error);
-        setUserRole(null);
-      }
-    } else {
-      setIsLoggedIn(false);
-      setUserRole(null);
-    }
-  }, []);
-
-  useEffect(() => {
     const fetchLikedEvents = async () => {
       if (!isLoggedIn || userRole !== "user") return;
       try {
         const response = await eventAPI.getMyLikedEvents();
-        const likedEventIds = new Set(
-          (response.data?.liked_event || []).map((e) => e.event_id)
-        );
-        setLikedEvents(likedEventIds);
+        setLikedEvents(getLikedEventIds(response.data?.liked_event));
       } catch (err) {
         console.error("Error fetching liked events:", err);
       }
@@ -135,28 +127,11 @@ export default function CalendarEventPage() {
     try {
       await eventAPI.likeEvent(eventId);
 
-      setLikedEvents((prev) => {
-        const newSet = new Set(prev);
-        if (isCurrentlyLiked) {
-          newSet.delete(eventId);
-        } else {
-          newSet.add(eventId);
-        }
-        return newSet;
-      });
-
-      setEvents((prev) =>
-        prev.map((event) => {
-          if (event.event_id === eventId) {
-            return {
-              ...event,
-              total_likes: isCurrentlyLiked
-                ? Math.max(0, (event.total_likes || 1) - 1)
-                : (event.total_likes || 0) + 1,
-            };
-          }
-          return event;
-        })
+      setLikedEvents((currentEvents) =>
+        toggleSetValue(currentEvents, eventId),
+      );
+      setEvents((currentEvents) =>
+        updateEventLikeCount(currentEvents, eventId, isCurrentlyLiked),
       );
     } catch (err) {
       console.error("Error liking event:", err);
@@ -164,107 +139,28 @@ export default function CalendarEventPage() {
   };
 
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      const matchesSearch =
-        !searchTerm ||
-        event.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.venue?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const eventParentCategory = getParentCategory(event.category);
-      const matchesCategory =
-        !categoryFilter || eventParentCategory === categoryFilter;
-
-      const matchesDistrict =
-        !districtFilter || event.district === districtFilter;
-
-      const matchesStatus =
-        !statusFilter || event.status === statusFilter;
-
-      return matchesSearch && matchesCategory && matchesDistrict && matchesStatus;
+    return filterCalendarEvents(events, {
+      category: categoryFilter,
+      district: districtFilter,
+      searchTerm,
+      status: statusFilter,
     });
   }, [events, searchTerm, categoryFilter, districtFilter, statusFilter]);
 
-  const getEventsForDate = (date) => {
-    if (!date) return [];
+  const eventsForMonth = useMemo(
+    () => getEventsForCalendarMonth(filteredEvents, currentDate),
+    [currentDate, filteredEvents],
+  );
 
-    return filteredEvents.filter((event) => {
-      if (!event.date_start) return false;
+  const calendarDays = useMemo(
+    () => buildCalendarDays(currentDate),
+    [currentDate],
+  );
 
-      const eventStart = new Date(event.date_start);
-      const eventEnd = event.date_end ? new Date(event.date_end) : eventStart;
-      const checkDate = new Date(date);
-
-      eventStart.setHours(0, 0, 0, 0);
-      eventEnd.setHours(23, 59, 59, 999);
-      checkDate.setHours(0, 0, 0, 0);
-
-      return checkDate >= eventStart && checkDate <= eventEnd;
-    });
-  };
-
-  const getEventsForMonth = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    const monthStart = new Date(year, month, 1);
-    const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
-
-    return filteredEvents
-      .filter((event) => {
-        if (!event.date_start) return false;
-
-        const eventStart = new Date(event.date_start);
-        const eventEnd = event.date_end ? new Date(event.date_end) : eventStart;
-
-        return (
-          (eventStart >= monthStart && eventStart <= monthEnd) ||
-          (eventEnd >= monthStart && eventEnd <= monthEnd) ||
-          (eventStart < monthStart && eventEnd > monthEnd)
-        );
-      })
-      .sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
-  }, [filteredEvents, currentDate]);
-
-  const calendarDays = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startingDayOfWeek = firstDay.getDay();
-    const totalDays = lastDay.getDate();
-
-    const days = [];
-
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
-      days.push({
-        day: prevMonthLastDay - i,
-        isCurrentMonth: false,
-        date: new Date(year, month - 1, prevMonthLastDay - i),
-      });
-    }
-
-    for (let i = 1; i <= totalDays; i++) {
-      days.push({
-        day: i,
-        isCurrentMonth: true,
-        date: new Date(year, month, i),
-      });
-    }
-
-    const remainingDays = 42 - days.length;
-    for (let i = 1; i <= remainingDays; i++) {
-      days.push({
-        day: i,
-        isCurrentMonth: false,
-        date: new Date(year, month + 1, i),
-      });
-    }
-
-    return days;
-  }, [currentDate]);
+  const selectedDateEvents = useMemo(
+    () => getEventsForCalendarDate(filteredEvents, selectedDate),
+    [filteredEvents, selectedDate],
+  );
 
   const goToPreviousMonth = () => {
     setCurrentDate(
@@ -285,18 +181,12 @@ export default function CalendarEventPage() {
     setSelectedDate(new Date());
   };
 
-  const isToday = (date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isSelected = (date) => {
-    return selectedDate && date.toDateString() === selectedDate.toDateString();
-  };
-
   const handleDateClick = (dayInfo) => {
     setSelectedDate(dayInfo.date);
-    if (window.innerWidth < 768 && getEventsForDate(dayInfo.date).length > 0) {
+    if (
+      window.innerWidth < 768 &&
+      getEventsForCalendarDate(filteredEvents, dayInfo.date).length > 0
+    ) {
       setShowMobileEventModal(true);
     }
   };
@@ -314,8 +204,6 @@ export default function CalendarEventPage() {
 
   const hasActiveFilters = searchTerm || categoryFilter || districtFilter || statusFilter;
 
-  const parentCategoriesForLegend = Object.keys(CATEGORIES);
-
   return (
     <div className="ui-page">
       <Navbar />
@@ -332,7 +220,7 @@ export default function CalendarEventPage() {
         isOpen={showMobileEventModal}
         onClose={() => setShowMobileEventModal(false)}
         selectedDate={selectedDate}
-        events={selectedDate ? getEventsForDate(selectedDate) : []}
+        events={selectedDateEvents}
         formatDate={formatDate}
         formatDateRange={formatDateRange}
         formatRupiah={formatRupiah}
@@ -477,7 +365,7 @@ export default function CalendarEventPage() {
                           className="ui-select px-3 py-2.5 text-sm sm:px-4 sm:py-3 sm:text-base"
                         >
                           <option value="">Semua Kategori</option>
-                          {parentCategoriesForLegend.map((category) => (
+                          {EVENT_PARENT_CATEGORIES.map((category) => (
                             <option key={category} value={category}>
                               {category}
                             </option>
@@ -581,7 +469,10 @@ export default function CalendarEventPage() {
 
                   <div className="grid grid-cols-7">
                     {calendarDays.map((dayInfo, index) => {
-                      const dayEvents = getEventsForDate(dayInfo.date);
+                      const dayEvents = getEventsForCalendarDate(
+                        filteredEvents,
+                        dayInfo.date,
+                      );
                       const hasEvents = dayEvents.length > 0;
 
                       return (
@@ -593,7 +484,7 @@ export default function CalendarEventPage() {
                               ? "bg-gray-50 opacity-60"
                               : "bg-white hover:bg-brand-50"
                           } ${
-                            isSelected(dayInfo.date)
+                            isSameCalendarDate(dayInfo.date, selectedDate)
                               ? "ring-2 ring-brand-500 ring-inset bg-brand-50"
                               : ""
                           } ${hasEvents ? "hover:shadow-inner" : ""}`}
@@ -603,7 +494,7 @@ export default function CalendarEventPage() {
                               className={`text-xs sm:text-sm font-medium inline-flex items-center justify-center ${
                                 !dayInfo.isCurrentMonth
                                   ? "text-gray-400"
-                                  : isToday(dayInfo.date)
+                                  : isTodayDate(dayInfo.date)
                                   ? "bg-brand-600 text-white w-5 h-5 sm:w-7 sm:h-7 rounded-full"
                                   : "text-gray-900"
                               }`}
@@ -670,7 +561,7 @@ export default function CalendarEventPage() {
                         Event pada {formatDate(selectedDate.toISOString())}
                       </h3>
 
-                      {getEventsForDate(selectedDate).length === 0 ? (
+                      {selectedDateEvents.length === 0 ? (
                         <div className="text-center py-8 bg-gray-50 rounded-xl">
                           <Calendar className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3" />
                           <p className="text-gray-500 text-sm sm:text-base">
@@ -679,7 +570,7 @@ export default function CalendarEventPage() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          {getEventsForDate(selectedDate).map((event, index) => (
+                          {selectedDateEvents.map((event, index) => (
                             <Motion.div
                               key={event.event_id}
                               initial={{ opacity: 0, y: 20 }}
@@ -740,7 +631,7 @@ export default function CalendarEventPage() {
                   </Button>
                 </div>
 
-                {getEventsForMonth.length === 0 ? (
+                {eventsForMonth.length === 0 ? (
                   <div className="text-center py-12 sm:py-16">
                     <Calendar className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-500 text-base sm:text-lg mb-2">
@@ -752,7 +643,7 @@ export default function CalendarEventPage() {
                   </div>
                 ) : (
                   <div className="space-y-3 sm:space-y-4">
-                    {getEventsForMonth.map((event, index) => (
+                    {eventsForMonth.map((event, index) => (
                       <Motion.div
                         key={event.event_id}
                         initial={{ opacity: 0, y: 20 }}
@@ -786,7 +677,7 @@ export default function CalendarEventPage() {
                 Legenda Kategori:
               </h4>
               <div className="flex flex-wrap gap-2 sm:gap-3">
-                {parentCategoriesForLegend.slice(0, 8).map((category) => (
+                {EVENT_PARENT_CATEGORIES.slice(0, 8).map((category) => (
                   <Button unstyled
                     key={category}
                     onClick={() =>
@@ -823,12 +714,12 @@ export default function CalendarEventPage() {
                   <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400" />
                   <span>Berakhir</span>
                 </Button>
-                {parentCategoriesForLegend.length > 8 && (
+                {EVENT_PARENT_CATEGORIES.length > 8 && (
                   <Button unstyled
                     onClick={() => setShowFilters(true)}
                     className="text-xs sm:text-sm text-brand-600 hover:text-brand-800 font-medium"
                   >
-                    +{parentCategoriesForLegend.length - 8} lainnya
+                    +{EVENT_PARENT_CATEGORIES.length - 8} lainnya
                   </Button>
                 )}
               </div>
@@ -1101,12 +992,7 @@ function EventCard({
               <div className="flex items-center gap-3 text-[11px] text-gray-500">
                 <span className="flex items-center gap-1">
                   <Calendar size={11} className="text-brand-500" />
-                  {event.date_start
-                    ? new Date(event.date_start).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                      })
-                    : "-"}
+                  {formatDayMonth(event.date_start)}
                 </span>
                 <span className="flex items-center gap-1 truncate">
                   <MapPin size={11} className="text-red-500 shrink-0" />
@@ -1213,12 +1099,7 @@ function EventCard({
             <div className="flex items-center gap-2">
               <Clock size={16} className="text-green-600 shrink-0" />
               <span>
-                {event.date_start
-                  ? new Date(event.date_start).toLocaleTimeString("id-ID", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "-"}
+                {formatTime(event.date_start)}
               </span>
             </div>
             {event.district && (

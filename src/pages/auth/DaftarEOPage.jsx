@@ -18,12 +18,14 @@ import { authAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
 import {
-  ALLOWED_IMAGE_TYPES,
-  MAX_IMAGE_SIZE,
+  buildOrganizerRegistrationFormData,
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
+  passwordsMatch,
+  readFileAsDataUrl,
+  validateImageFile,
 } from "../../utils";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import useLoadingProgress from "../../hooks/useLoadingProgress";
 
@@ -97,7 +99,9 @@ export default function DaftarEOPage() {
   const handleKtpChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      const validation = validateImageFile(file);
+
+      if (validation.reason === "type") {
         setErrorMsg("Hanya file JPG, JPEG, atau PNG yang diizinkan!");
         setKtpFile(null);
         setKtpPreview(null);
@@ -105,7 +109,7 @@ export default function DaftarEOPage() {
         return;
       }
 
-      if (file.size > MAX_IMAGE_SIZE) {
+      if (validation.reason === "size") {
         setErrorMsg("Ukuran file maksimal 5MB!");
         setKtpFile(null);
         setKtpPreview(null);
@@ -116,11 +120,7 @@ export default function DaftarEOPage() {
       setErrorMsg("");
       setKtpFile(file);
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setKtpPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
+      readFileAsDataUrl(file).then(setKtpPreview);
       startUploadProgress();
     }
   };
@@ -128,7 +128,7 @@ export default function DaftarEOPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== confirmPassword) {
+    if (!passwordsMatch(formData.password, confirmPassword)) {
       showNotification("Password dan konfirmasi tidak sama!", "Error", "error");
       return;
     }
@@ -155,19 +155,10 @@ export default function DaftarEOPage() {
     startLoading();
 
     try {
-      const submitData = new FormData();
-      submitData.append("username", formData.username);
-      submitData.append("name", formData.name);
-      submitData.append("email", formData.email);
-      submitData.append("password", formData.password);
-      submitData.append("role", formData.role);
-      submitData.append("organization", formData.organization);
-      submitData.append("organization_type", formData.organization_type);
-      submitData.append(
-        "organization_description",
-        formData.organization_description
+      const submitData = buildOrganizerRegistrationFormData(
+        formData,
+        ktpFile,
       );
-      submitData.append("ktp", ktpFile);
 
       const response = await authAPI.register(submitData);
 

@@ -5,14 +5,18 @@ import EditProfileModal from "../../components/users/EditProfileModal";
 import ImagePreviewModal from "../../components/common/ImagePreviewModal";
 import useImagePreview from "../../hooks/useImagePreview";
 import {
+  downloadUrl,
+  getOrganizerStatusConfig,
+  getUserRoleLabel,
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
+  readStoredUser,
+  saveStoredUser,
 } from "../../utils";
 import { motion as Motion } from "framer-motion";
 import {
   User, Mail, Building, MapPin, FileText,
-  Shield, Edit, CheckCircle,
-  Clock, XCircle, Download, Eye
+  Shield, Edit, Download, Eye
 } from "lucide-react";
 import Button from "../../components/common/Button";
 import useLoading from "../../hooks/useLoading";
@@ -38,13 +42,10 @@ export default function LihatProfilPage() {
       startLoading();
       const response = await userAPI.getProfile();
       setUser(response.data);
-      sessionStorage.setItem("user", JSON.stringify(response.data));
+      saveStoredUser(response.data);
     } catch (error) {
       console.error("Error fetching profile:", error);
-      const userData = sessionStorage.getItem("user");
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
+      setUser(readStoredUser());
     } finally {
       stopLoading();
     }
@@ -56,7 +57,7 @@ export default function LihatProfilPage() {
 
   const handleProfileUpdate = (updatedUser) => {
     setUser(updatedUser);
-    sessionStorage.setItem("user", JSON.stringify(updatedUser));
+    saveStoredUser(updatedUser);
     setShowEditModal(false);
   };
 
@@ -80,32 +81,6 @@ export default function LihatProfilPage() {
     }
   };
 
-  const getRoleDisplayName = (role) => {
-    switch (role) {
-      case "user":
-        return "User";
-      case "organizer":
-        return "Event Organizer";
-      case "admin":
-        return "Administrator";
-      default:
-        return "User";
-    }
-  };
-
-  const getStatusDisplay = (status) => {
-    switch (status) {
-      case "pending":
-        return { text: "Menunggu Verifikasi", color: "ui-badge-warning", icon: Clock };
-      case "approved":
-        return { text: "Terverifikasi", color: "ui-badge-success", icon: CheckCircle };
-      case "rejected":
-        return { text: "Ditolak", color: "ui-badge-danger", icon: XCircle };
-      default:
-        return { text: status, color: "bg-gray-100 text-gray-800", icon: Shield };
-    }
-  };
-
   if (loading) {
     return (
       <div>
@@ -120,7 +95,10 @@ export default function LihatProfilPage() {
     );
   }
 
-  const statusInfo = user.role === "organizer" ? getStatusDisplay(user.register_status) : null;
+  const statusInfo =
+    user.role === "organizer"
+      ? getOrganizerStatusConfig(user.register_status)
+      : null;
   const StatusIcon = statusInfo?.icon;
 
   return (
@@ -233,7 +211,7 @@ export default function LihatProfilPage() {
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-2 text-gray-600">
                         <User size={16} />
-                        <span className="font-medium">{getRoleDisplayName(user.role)}</span>
+                        <span className="font-medium">{getUserRoleLabel(user.role)}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
                         <Mail size={16} />
@@ -297,7 +275,7 @@ export default function LihatProfilPage() {
                           Role
                         </label>
                         <p className="text-gray-900 font-medium p-2 bg-white rounded-lg border border-gray-200 capitalize">
-                          {getRoleDisplayName(user.role)}
+                          {getUserRoleLabel(user.role)}
                         </p>
                       </div>
                       <div>
@@ -448,14 +426,14 @@ export default function LihatProfilPage() {
           imageAlt={previewImageData.alt}
           aspectRatio="square"
           showDownloadButton={true}
-          onDownload={() => {
-            const link = document.createElement('a');
-            link.href = previewImageData.src;
-            link.download = previewImageData.type === 'profile'
-              ? `profile-${user.username}.jpg`
-              : `ktp-${user.username}.jpg`;
-            link.click();
-          }}
+          onDownload={() =>
+            downloadUrl(
+              previewImageData.src,
+              previewImageData.type === "profile"
+                ? `profile-${user.username}.jpg`
+                : `ktp-${user.username}.jpg`,
+            )
+          }
         />
       )}
     </div>

@@ -1,5 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
 import LoadingSpinner from "./LoadingSpinner";
+import { clamp, joinClasses } from "../../utils";
 
 export default function LoadingProgress({
   className = "",
@@ -7,14 +8,12 @@ export default function LoadingProgress({
   label = "Mengunggah",
   progress = 0,
 }) {
-  const normalizedProgress = Math.min(Math.max(progress, 0), 100);
+  const normalizedProgress = clamp(progress, 0, 100);
   const isComplete = normalizedProgress === 100;
-  const classes = [
+  const classes = joinClasses(
     "rounded-xl border border-brand-100 bg-white/80 p-3 shadow-sm",
     className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  );
 
   return (
     <div className={classes} role="status" aria-live="polite">

@@ -7,9 +7,12 @@ import useSessionUser from "../../hooks/useSessionUser";
 import { ticketAPI, eventAPI } from "../../services";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
+  CHECKIN_STAT_CARD_CLASSES,
   formatFullDateTime as formatDateTime,
   formatLongDate as formatDate,
   formatTime,
+  getCheckInErrorDetails,
+  getEventCheckInRestriction,
 } from "../../utils";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import {
@@ -35,7 +38,7 @@ import {
   TimerOff
 } from "lucide-react";
 import Button from "../../components/common/Button";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -148,34 +151,18 @@ export default function CheckinTiketPage() {
       setCheckInStatus(null);
       setErrorMessage("");
 
-      if (eventData) {
-        const now = new Date();
-        const eventDateStart = eventData.date_start ? new Date(eventData.date_start) : null;
-        const eventDateEnd = eventData.date_end ? new Date(eventData.date_end) : null;
-
-        if (eventDateStart && now < eventDateStart) {
-          setTicketData({
-            event_name: eventData.name,
-          });
-          setCheckInStatus('not_started');
-          setErrorMessage("Event belum dimulai. Tiket ini belum bisa digunakan untuk check-in.");
-          setShowResult(true);
-          showNotification("Tiket belum bisa digunakan, event belum dimulai", "Belum Jadwalnya", "warning");
-          stopProcessing();
-          return;
-        }
-
-        if (eventDateEnd && now > eventDateEnd) {
-          setTicketData({
-            event_name: eventData.name,
-          });
-          setCheckInStatus('expired');
-          setErrorMessage("Waktu event sudah berakhir. Tiket ini sudah tidak berlaku.");
-          setShowResult(true);
-          showNotification("Tiket sudah kadaluarsa", "Tiket Kadaluarsa", "error");
-          stopProcessing();
-          return;
-        }
+      const restriction = getEventCheckInRestriction(eventData);
+      if (restriction) {
+        setTicketData({ event_name: eventData.name });
+        setCheckInStatus(restriction.status);
+        setErrorMessage(restriction.errorMessage);
+        setShowResult(true);
+        showNotification(
+          restriction.notification.message,
+          restriction.notification.title,
+          restriction.notification.type,
+        );
+        return;
       }
 
       const response = await ticketAPI.checkInTicket(eventId, ticketCode);
@@ -193,73 +180,27 @@ export default function CheckinTiketPage() {
     } catch (error) {
       console.error("Check-in error:", error);
 
-      const errorMsg = error.response?.data?.error || "Terjadi kesalahan saat check-in";
-      const errorStatus = error.response?.data?.status || null;
-      const backendTicketData = error.response?.data?.ticket || null;
-      const backendUsedAt = error.response?.data?.used_at || null;
+      const errorDetails = getCheckInErrorDetails(error);
 
-      setErrorMessage(errorMsg);
+      setErrorMessage(errorDetails.errorMessage);
+      setCheckInStatus(errorDetails.status);
+      setShowResult(true);
 
-      if (backendTicketData) {
-        setTicketData(backendTicketData);
+      if (errorDetails.ticket) {
+        setTicketData(errorDetails.ticket);
       } else if (eventData) {
-        setTicketData({
-          event_name: eventData.name,
-        });
+        setTicketData({ event_name: eventData.name });
       }
 
-      if (backendUsedAt) {
-        setUsedAtTime(backendUsedAt);
+      if (errorDetails.usedAt) {
+        setUsedAtTime(errorDetails.usedAt);
       }
 
-      if (errorStatus === 'not_started') {
-        setCheckInStatus('not_started');
-        setShowResult(true);
-        showNotification("Tiket belum bisa digunakan, event belum dimulai", "Belum Jadwalnya", "warning");
-      } else if (errorStatus === 'expired') {
-        setCheckInStatus('expired');
-        setShowResult(true);
-        showNotification("Tiket sudah kadaluarsa", "Tiket Kadaluarsa", "error");
-      } else if (errorStatus === 'already_used') {
-        setCheckInStatus('already_used');
-        setShowResult(true);
-        showNotification("Tiket sudah pernah digunakan", "Check-in Gagal", "warning");
-      } else if (errorStatus === 'cancelled') {
-        setCheckInStatus('error');
-        setErrorMessage("Tiket telah dibatalkan dan tidak dapat digunakan.");
-        setShowResult(true);
-        showNotification("Tiket dibatalkan", "Check-in Gagal", "error");
-      } else if (errorStatus === 'inactive') {
-        setCheckInStatus('error');
-        setErrorMessage("Tiket tidak aktif dan tidak dapat digunakan.");
-        setShowResult(true);
-        showNotification("Tiket tidak aktif", "Check-in Gagal", "error");
-      }
-      else if (errorMsg.includes("not started") || errorMsg.includes("belum dimulai") || errorMsg.includes("belum jadwal")) {
-        setCheckInStatus('not_started');
-        setShowResult(true);
-        showNotification("Tiket belum bisa digunakan, event belum dimulai", "Belum Jadwalnya", "warning");
-      } else if (errorMsg.includes("expired") || errorMsg.includes("kadaluarsa") || errorMsg.includes("berakhir") || errorMsg.includes("ended")) {
-        setCheckInStatus('expired');
-        setShowResult(true);
-        showNotification("Tiket sudah kadaluarsa", "Tiket Kadaluarsa", "error");
-      } else if (errorMsg.includes("already used") || errorMsg.includes("sudah digunakan")) {
-        setCheckInStatus('already_used');
-        setShowResult(true);
-        showNotification("Tiket sudah pernah digunakan", "Check-in Gagal", "warning");
-      } else if (errorMsg.includes("not found") || errorMsg.includes("tidak ditemukan") || errorMsg.includes("invalid")) {
-        setCheckInStatus('error');
-        setShowResult(true);
-        showNotification("Tiket tidak ditemukan atau tidak valid", "Check-in Gagal", "error");
-      } else if (errorMsg.includes("not active")) {
-        setCheckInStatus('error');
-        setShowResult(true);
-        showNotification("Tiket tidak aktif", "Check-in Gagal", "error");
-      } else {
-        setCheckInStatus('error');
-        setShowResult(true);
-        showNotification(errorMsg, "Check-in Gagal", "error");
-      }
+      showNotification(
+        errorDetails.notification.message,
+        errorDetails.notification.title,
+        errorDetails.notification.type,
+      );
     } finally {
       stopProcessing();
     }
@@ -960,15 +901,10 @@ function DetailItem({ icon, label, value }) {
 }
 
 function StatCard({ icon, label, value, color }) {
-  const colorClasses = {
-    blue: "bg-brand-50 text-brand-600 border-brand-200",
-    green: "bg-success-50 text-success-600 border-success-200",
-  };
-
   return (
     <Motion.div
       whileHover={{ scale: 1.02, y: -2 }}
-      className={`${colorClasses[color]} border rounded-xl p-4 transition-all`}
+      className={`${CHECKIN_STAT_CARD_CLASSES[color]} border rounded-xl p-4 transition-all`}
     >
       <div className="mb-2">{icon}</div>
       <p className="text-2xl font-bold">{value}</p>

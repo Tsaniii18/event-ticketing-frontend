@@ -17,16 +17,23 @@ import { eventAPI } from "../../services";
 import useSessionUser from "../../hooks/useSessionUser";
 import {
   CATEGORY_DATA,
+  chunkItems,
   formatCompactNumber as formatNumber,
-  formatOptionalShortDateRange as formatEventDate,
+  formatMonthShort,
   formatRupiah,
+  getAvailableEventCategories,
   getCategoryData,
-  getLowestTicketPrice as getLowestPrice,
+  getBannerEvents,
+  getDaysUntilEvent,
+  getLandingEventCollections,
+  getLikedEventIds,
   getParentCategory,
   SCROLLBAR_HIDE_STYLE as scrollbarHideStyle,
+  toggleSetValue,
+  updateEventLikeCount,
 } from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -96,33 +103,15 @@ export default function LandingPage() {
       if (!canLike) return;
       try {
         const response = await eventAPI.getMyLikedEvents();
-        const likedEventIds = new Set(
-          (response.data?.liked_event || []).map((e) => e.event_id)
+        setLikedEvents(
+          getLikedEventIds(response.data?.liked_event),
         );
-        setLikedEvents(likedEventIds);
       } catch (err) {
         console.error("Error fetching liked events:", err);
       }
     };
     fetchLikedEvents();
   }, [canLike]);
-
-  const transformEvent = useCallback((event) => ({
-    id: event.event_id || event.id,
-    name: event.name,
-    date: formatEventDate(event.date_start, event.date_end),
-    dateStart: event.date_start,
-    dateEnd: event.date_end,
-    price: getLowestPrice(event.ticket_categories),
-    poster: event.image,
-    banner: event.flyer || event.image,
-    category: event.category,
-    location: event.venue || event.location,
-    district: event.district,
-    totalLikes: event.total_likes || 0,
-    totalTicketsSold: event.total_tickets_sold || 0,
-    originalData: event,
-  }), []);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -132,42 +121,15 @@ export default function LandingPage() {
 
         const approvedResponse = await eventAPI.getApprovedEvents();
         const allEvents = approvedResponse.data || [];
-
-        const filteredByStatus = allEvents.filter(
-          (event) => event.status === "approved" || event.status === "active"
-        );
-
-        const transformedEvents = filteredByStatus.map(transformEvent);
-
-        const bestSelling = [...transformedEvents]
-          .filter((e) => e.totalTicketsSold >= 0)
-          .sort((a, b) => b.totalTicketsSold - a.totalTicketsSold)
-          .slice(0, 6);
-        setBestSellingEvents(bestSelling);
-
         const popularResponse = await eventAPI.getEventsPopular();
-        let popularEventsData = popularResponse.data?.events || [];
+        const { bestSelling, popular, upcoming } =
+          getLandingEventCollections(
+            allEvents,
+            popularResponse.data?.events || [],
+          );
 
-        if (popularEventsData.length === 0) {
-          popularEventsData = [...transformedEvents]
-            .filter((e) => e.totalLikes >= 0)
-            .sort((a, b) => b.totalLikes - a.totalLikes)
-            .slice(0, 6);
-          setPopularEvents(popularEventsData);
-        } else {
-          const filteredPopular = popularEventsData
-            .filter((event) => event.status === "approved" || event.status === "active")
-            .map(transformEvent)
-            .filter((e) => e.totalLikes >= 0)
-            .slice(0, 6);
-          setPopularEvents(filteredPopular);
-        }
-
-        const now = new Date();
-        const upcoming = transformedEvents
-          .filter((e) => e.dateStart && new Date(e.dateStart) >= now)
-          .sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
-          .slice(0, 6);
+        setBestSellingEvents(bestSelling);
+        setPopularEvents(popular);
         setUpcomingEvents(upcoming);
       } catch (err) {
         console.error("Error fetching events:", err);
@@ -178,7 +140,7 @@ export default function LandingPage() {
     };
 
     fetchEvents();
-  }, [startLoading, stopLoading, transformEvent]);
+  }, [startLoading, stopLoading]);
 
   const handleLikeEvent = async (eventId, e) => {
     e.stopPropagation();
@@ -188,53 +150,54 @@ export default function LandingPage() {
       return;
     }
 
-    const userData = sessionStorage.getItem("user");
-    if (!userData) return;
-
-    const user = JSON.parse(userData);
-    if (user.role !== "user") {
-      return;
-    }
+    if (userRole !== "user") return;
 
     const isCurrentlyLiked = likedEvents.has(eventId);
 
     try {
       await eventAPI.likeEvent(eventId);
 
-      setLikedEvents((prev) => {
-        const newSet = new Set(prev);
-        if (isCurrentlyLiked) {
-          newSet.delete(eventId);
-        } else {
-          newSet.add(eventId);
-        }
-        return newSet;
-      });
+      setLikedEvents((currentEvents) =>
+        toggleSetValue(currentEvents, eventId),
+      );
 
-      const updateLikes = (events) =>
-        events.map((event) => {
-          if (event.id === eventId) {
-            return {
-              ...event,
-              totalLikes: isCurrentlyLiked
-                ? Math.max(0, (event.totalLikes || 1) - 1)
-                : (event.totalLikes || 0) + 1,
-            };
-          }
-          return event;
-        });
-
-      setBestSellingEvents(updateLikes);
-      setPopularEvents(updateLikes);
-      setUpcomingEvents(updateLikes);
+      const likeCountOptions = { countKey: "totalLikes", idKey: "id" };
+      setBestSellingEvents((events) =>
+        updateEventLikeCount(
+          events,
+          eventId,
+          isCurrentlyLiked,
+          likeCountOptions,
+        ),
+      );
+      setPopularEvents((events) =>
+        updateEventLikeCount(
+          events,
+          eventId,
+          isCurrentlyLiked,
+          likeCountOptions,
+        ),
+      );
+      setUpcomingEvents((events) =>
+        updateEventLikeCount(
+          events,
+          eventId,
+          isCurrentlyLiked,
+          likeCountOptions,
+        ),
+      );
     } catch (err) {
       console.error("Error liking event:", err);
     }
   };
 
   const bannerEvents = useMemo(
-    () => bestSellingEvents.filter((e) => e.banner).slice(0, 5),
+    () => getBannerEvents(bestSellingEvents),
     [bestSellingEvents]
+  );
+  const upcomingEventColumns = useMemo(
+    () => chunkItems(upcomingEvents.slice(0, 6), 2),
+    [upcomingEvents],
   );
 
   const handleNext = useCallback(() => {
@@ -300,14 +263,10 @@ export default function LandingPage() {
     navigate(routeTo.eventSearch({ category: category }));
   };
 
-  const availableCategories = useMemo(() => {
-    const cats = new Set();
-    bestSellingEvents.forEach((event) => {
-      const parent = getParentCategory(event.category);
-      if (parent !== "Lainnya") cats.add(parent);
-    });
-    return Array.from(cats).slice(0, 8);
-  }, [bestSellingEvents]);
+  const availableCategories = useMemo(
+    () => getAvailableEventCategories(bestSellingEvents),
+    [bestSellingEvents],
+  );
 
   if (loading) {
     return (
@@ -751,9 +710,9 @@ export default function LandingPage() {
                   className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                  {Array.from({ length: Math.ceil(upcomingEvents.slice(0, 6).length / 2) }).map((_, colIndex) => (
+                  {upcomingEventColumns.map((columnEvents, colIndex) => (
                     <div key={colIndex} className="shrink-0 w-[75vw] max-w-70 flex flex-col gap-3">
-                      {upcomingEvents.slice(0, 6).slice(colIndex * 2, colIndex * 2 + 2).map((event, index) => (
+                      {columnEvents.map((event, index) => (
                         <UpcomingEventCard
                           key={event.id}
                           event={event}
@@ -985,11 +944,7 @@ function UpcomingEventCard({
   const catData = getCategoryData(event.category);
   const parentCategory = getParentCategory(event.category);
 
-  const daysUntil = event.dateStart
-    ? Math.ceil(
-        (new Date(event.dateStart) - new Date()) / (1000 * 60 * 60 * 24)
-      )
-    : null;
+  const daysUntil = getDaysUntilEvent(event.dateStart);
 
   return (
     <Motion.div
@@ -1009,9 +964,7 @@ function UpcomingEventCard({
                 {new Date(event.dateStart).getDate()}
               </span>
               <span className="text-xs uppercase tracking-wide opacity-80">
-                {new Date(event.dateStart).toLocaleDateString("id-ID", {
-                  month: "short",
-                })}
+                {formatMonthShort(event.dateStart)}
               </span>
             </>
           )}

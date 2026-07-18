@@ -1,12 +1,11 @@
 import { motion as Motion } from "framer-motion";
+import { joinClasses } from "../../utils";
 
 const ALIGNMENT_CLASSES = {
   left: "text-left",
   center: "text-center",
   right: "text-right",
 };
-
-const joinClasses = (...classes) => classes.filter(Boolean).join(" ");
 
 export function Table({
   children,

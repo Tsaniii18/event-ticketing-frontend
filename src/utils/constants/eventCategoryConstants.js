@@ -224,74 +224,10 @@ export const CATEGORIES = {
   ],
 };
 
+export const EVENT_PARENT_CATEGORIES = Object.keys(CATEGORIES);
+
 export const CATEGORY_COLORS = Object.fromEntries(
   Object.entries(CATEGORY_DATA).map(([category, data]) => [category, data.color]),
 );
 
 CATEGORY_COLORS.Lainnya = DEFAULT_CATEGORY_DATA.color;
-
-export const YOGYAKARTA_DISTRICTS = [
-  "Tegalrejo",
-  "Jetis",
-  "Gondokusuman",
-  "Danurejan",
-  "Gedongtengen",
-  "Ngampilan",
-  "Wirobrajan",
-  "Mantrijeron",
-  "Kraton",
-  "Gondomanan",
-  "Pakualaman",
-  "Mergangsan",
-  "Umbulharjo",
-  "Kotagede",
-];
-
-export const EXTENDED_DISTRICTS = [
-  ...YOGYAKARTA_DISTRICTS,
-  "Banguntapan",
-  "Sewon",
-  "Kasihan",
-  "Pandak",
-  "Pleret",
-  "Bantul",
-  "Imogiri",
-  "Sanden",
-  "Pundong",
-  "Kretek",
-];
-
-export const MONTH_NAMES = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
-export const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
-
-export const DAY_NAMES_FULL = [
-  "Minggu",
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-];
-
-export const EVENTS_PER_PAGE = 10;
-
-export const SCROLLBAR_HIDE_STYLE = `
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-`;

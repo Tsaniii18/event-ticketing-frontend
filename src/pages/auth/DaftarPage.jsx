@@ -10,8 +10,9 @@ import useNotification from "../../hooks/useNotification";
 import {
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
+  passwordsMatch,
 } from "../../utils";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 
 export default function DaftarPage() {
@@ -44,7 +45,7 @@ export default function DaftarPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== confirmPassword) {
+    if (!passwordsMatch(formData.password, confirmPassword)) {
       showNotification(
         "Password dan konfirmasi password tidak sama",
         "Error",

@@ -14,7 +14,13 @@ import {
 } from "../../components/common/Table";
 import {
   CHART_COLORS,
+  calculatePercentage,
+  clamp,
+  downloadBlob,
   formatCurrencyOrZero as formatRupiah,
+  formatMonthDate,
+  getTicketReportRows,
+  normalizeEventReport,
 } from "../../utils";
 import {
   CalendarDays,
@@ -52,21 +58,9 @@ export default function LaporanEventPage() {
     try {
       startLoading();
       const response = await eventAPI.getEventReport(eventId);
-
-      if (response.data.report && response.data.metrics) {
-        setReportData(response.data.report);
-        setMetrics(response.data.metrics);
-      } else {
-        setReportData(response.data);
-        setMetrics({
-          total_attendant: response.data.total_checkins || 0,
-          total_tickets_sold: response.data.total_tickets_sold || 0,
-          total_sales: response.data.total_income || 0,
-          total_quota: response.data.total_quota || 0,
-          sold_percentage: "0%",
-          attendance_rate: "0%"
-        });
-      }
+      const normalizedReport = normalizeEventReport(response.data);
+      setReportData(normalizedReport.report);
+      setMetrics(normalizedReport.metrics);
     } catch (err) {
       console.error("Error fetching event report:", err);
       setError("Gagal memuat laporan event");
@@ -82,15 +76,11 @@ export default function LaporanEventPage() {
   const handleDownloadReport = async () => {
     try {
       const response = await eventAPI.downloadEventReport(eventId);
-      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `laporan-event-${eventId}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(
+        response.data,
+        `laporan-event-${eventId}.csv`,
+        "text/csv;charset=utf-8",
+      );
     } catch (err) {
       console.error("Error downloading report:", err);
       alert("Gagal mengunduh laporan");
@@ -101,6 +91,10 @@ export default function LaporanEventPage() {
   const totalSold = reportData?.total_tickets_sold || 0;
   const totalCheckins = reportData?.total_checkins || 0;
   const totalIncome = reportData?.total_income || 0;
+  const ticketReportRows = getTicketReportRows(
+    reportData?.purchase_data,
+    reportData?.checkin_data,
+  );
 
   return (
     <div className="ui-page">
@@ -209,9 +203,7 @@ export default function LaporanEventPage() {
                   <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
                     <span className="flex items-center gap-1.5 sm:gap-2 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg">
                       <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-600"/>
-                      {reportData.event?.date_start
-                        ? new Date(reportData.event.date_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-                        : 'N/A'}
+                      {formatMonthDate(reportData.event?.date_start, "N/A")}
                     </span>
                     <span className="flex items-center gap-1.5 sm:gap-2 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg">
                       <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500"/>
@@ -238,7 +230,9 @@ export default function LaporanEventPage() {
                     <div className="mt-2 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-brand-500 rounded-full transition-all"
-                        style={{ width: `${totalQuota > 0 ? Math.min((totalSold / totalQuota) * 100, 100) : 0}%` }}
+                        style={{
+                          width: `${calculatePercentage(totalSold, totalQuota, { maximum: 100 })}%`,
+                        }}
                       />
                     </div>
                   </div>
@@ -255,7 +249,9 @@ export default function LaporanEventPage() {
                     <div className="mt-2 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 rounded-full transition-all"
-                        style={{ width: `${totalSold > 0 ? Math.min((totalCheckins / totalSold) * 100, 100) : 0}%` }}
+                        style={{
+                          width: `${calculatePercentage(totalCheckins, totalSold, { maximum: 100 })}%`,
+                        }}
                       />
                     </div>
                   </div>
@@ -324,16 +320,7 @@ export default function LaporanEventPage() {
                               </TableCell>
                             </TableRow>
                           ) : (
-                            reportData.purchase_data.map((item, index) => {
-                              const checkin = reportData.checkin_data?.find(c => c.name === item.name) || { value: 0 };
-                              const quota = item.quota || 0;
-                              const price = item.price || 0;
-                              const sold = item.value || 0;
-                              const checkinCount = checkin.value || 0;
-                              const income = sold * price;
-                              const soldPercent = quota > 0 ? ((sold / quota) * 100).toFixed(0) : 0;
-                              const checkinPercent = sold > 0 ? ((checkinCount / sold) * 100).toFixed(0) : 0;
-
+                            ticketReportRows.map((item, index) => {
                               return (
                                 <TableRow key={`row-${index}`}>
                                   <TableCell>
@@ -345,38 +332,38 @@ export default function LaporanEventPage() {
                                       <span className="font-medium text-gray-800 text-xs sm:text-sm">{item.name}</span>
                                     </div>
                                   </TableCell>
-                                  <TableCell align="center">{formatRupiah(price)}</TableCell>
-                                  <TableCell align="center">{quota}</TableCell>
+                                  <TableCell align="center">{formatRupiah(item.price)}</TableCell>
+                                  <TableCell align="center">{item.quota}</TableCell>
                                   <TableCell align="center">
                                     <div className="flex flex-col items-center">
-                                      <span className="font-semibold text-brand-600 text-xs sm:text-sm">{sold}</span>
+                                      <span className="font-semibold text-brand-600 text-xs sm:text-sm">{item.sold}</span>
                                       <div className="flex items-center gap-1 sm:gap-2 mt-1">
                                         <div className="w-12 sm:w-20 h-1 sm:h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                           <div
                                             className="h-full bg-brand-500 rounded-full"
-                                            style={{ width: `${Math.min(Number(soldPercent), 100)}%` }}
+                                            style={{ width: `${clamp(Number(item.soldPercent), 0, 100)}%` }}
                                           />
                                         </div>
-                                        <span className="text-[10px] sm:text-xs text-gray-500">{soldPercent}%</span>
+                                        <span className="text-[10px] sm:text-xs text-gray-500">{item.soldPercent}%</span>
                                       </div>
                                     </div>
                                   </TableCell>
                                   <TableCell align="center">
                                     <div className="flex flex-col items-center">
-                                      <span className="font-semibold text-green-600 text-xs sm:text-sm">{checkinCount}</span>
+                                      <span className="font-semibold text-green-600 text-xs sm:text-sm">{item.checkin}</span>
                                       <div className="flex items-center gap-1 sm:gap-2 mt-1">
                                         <div className="w-12 sm:w-20 h-1 sm:h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                           <div
                                             className="h-full bg-green-500 rounded-full"
-                                            style={{ width: `${Math.min(Number(checkinPercent), 100)}%` }}
+                                            style={{ width: `${clamp(Number(item.checkinPercent), 0, 100)}%` }}
                                           />
                                         </div>
-                                        <span className="text-[10px] sm:text-xs text-gray-500">{checkinPercent}%</span>
+                                        <span className="text-[10px] sm:text-xs text-gray-500">{item.checkinPercent}%</span>
                                       </div>
                                     </div>
                                   </TableCell>
                                   <TableCell align="right" className="font-semibold text-purple-600">
-                                    {formatRupiah(income)}
+                                    {formatRupiah(item.income)}
                                   </TableCell>
                                 </TableRow>
                               );

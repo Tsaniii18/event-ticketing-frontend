@@ -1,3 +1,5 @@
+import { joinClasses } from "../../utils";
+
 const SIZE_CLASSES = {
   xs: "size-4",
   sm: "size-5",
@@ -31,13 +33,11 @@ export default function LoadingSpinner({
   tone = "brand",
 }) {
   const toneClasses = TONE_CLASSES[tone];
-  const classes = [
+  const classes = joinClasses(
     "relative inline-flex shrink-0",
     SIZE_CLASSES[size],
     className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  );
 
   return (
     <span
@@ -47,22 +47,22 @@ export default function LoadingSpinner({
       aria-hidden={label ? undefined : true}
     >
       <span
-        className={[
+        className={joinClasses(
           "absolute inset-0 rounded-full border-[3px]",
           toneClasses.track,
-        ].join(" ")}
+        )}
       />
       <span
-        className={[
+        className={joinClasses(
           "absolute inset-0 animate-spin rounded-full border-[3px] border-transparent",
           toneClasses.indicator,
-        ].join(" ")}
+        )}
       />
       <span
-        className={[
+        className={joinClasses(
           "absolute inset-[35%] animate-pulse rounded-full",
           toneClasses.core,
-        ].join(" ")}
+        )}
       />
     </span>
   );

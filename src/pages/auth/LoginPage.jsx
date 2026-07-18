@@ -10,8 +10,9 @@ import useNotification from "../../hooks/useNotification";
 import {
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
+  saveSession,
 } from "../../utils";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 
 export default function LoginPage() {
@@ -44,8 +45,7 @@ export default function LoginPage() {
       const response = await authAPI.login(formData);
 
       if (response.data.token) {
-        sessionStorage.setItem("token", response.data.token);
-        sessionStorage.setItem("user", JSON.stringify(response.data.user));
+        saveSession(response.data.token, response.data.user);
 
         showNotification("Login berhasil!", "Sukses", "success");
         setTimeout(() => {

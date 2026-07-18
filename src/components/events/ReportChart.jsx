@@ -1,11 +1,11 @@
 import { createElement } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { CHART_COLORS } from "../../utils";
-
-const hasValidData = (data) => {
-  if (!data || data.length === 0) return false;
-  return data.some((item) => item.value > 0);
-};
+import {
+  calculatePercentage,
+  CHART_COLORS,
+  hasPositiveValue,
+  sumBy,
+} from "../../utils";
 
 const renderCustomizedLabel = ({
   cx,
@@ -74,6 +74,8 @@ export default function ReportChart({
   icon: Icon,
   emptyMessage,
 }) {
+  const totalValue = sumBy(data || [], (entry) => entry.value);
+
   return (
     <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
       <div className="bg-gray-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
@@ -99,7 +101,7 @@ export default function ReportChart({
       </div>
 
       <div className="p-4 sm:p-6 bg-white">
-        {!hasValidData(data) ? (
+        {!hasPositiveValue(data) ? (
           <EmptyStateChart message={emptyMessage} icon={Icon} />
         ) : (
           <div className="flex flex-col lg:flex-row items-center gap-4 sm:gap-6">
@@ -144,9 +146,11 @@ export default function ReportChart({
             <div className="w-full lg:w-1/2">
               <div className="space-y-2 sm:space-y-3">
                 {data.map((item, index) => {
-                  const total = data.reduce((sum, entry) => sum + entry.value, 0);
-                  const percentage =
-                    total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+                  const percentage = calculatePercentage(
+                    item.value,
+                    totalValue,
+                    { precision: 1 },
+                  );
 
                   return (
                     <div

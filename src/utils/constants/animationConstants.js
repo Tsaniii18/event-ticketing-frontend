@@ -23,7 +23,3 @@ export const FADE_UP_VARIANTS = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
 };
-
-export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
-
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;

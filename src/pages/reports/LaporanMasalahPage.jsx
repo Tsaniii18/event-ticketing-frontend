@@ -18,8 +18,12 @@ import {
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
+  countByStatus,
+  filterFeedbackReports,
   formatTimeAgo as getTimeAgo,
+  getFeedbackCategories,
   getFeedbackStatusLabel,
+  sortFeedbackByNewest,
 } from "../../utils";
 import Button from "../../components/common/Button";
 import useLoading from "../../hooks/useLoading";
@@ -55,8 +59,8 @@ export default function LaporanMasalahPage() {
     try {
       startLoading();
       const response = await feedbackAPI.getAllFeedback();
-      const sortedFeedback = (response.data.feedback || []).sort((a, b) =>
-        new Date(b.created_at) - new Date(a.created_at)
+      const sortedFeedback = sortFeedbackByNewest(
+        response.data.feedback || [],
       );
       setReports(sortedFeedback);
     } catch (err) {
@@ -118,29 +122,22 @@ export default function LaporanMasalahPage() {
     }
   };
 
-  const categoryOptions = useMemo(() => {
-    const categories = [...new Set(reports.map((r) => r.feedback_category))];
-    return categories;
-  }, [reports]);
+  const categoryOptions = useMemo(
+    () => getFeedbackCategories(reports),
+    [reports],
+  );
 
-  const waitingReports = reports.filter(r => r.status === "waiting");
-  const processedReports = reports.filter(r => r.status === "processed");
-  const completedReports = reports.filter(r => r.status === "completed");
+  const reportStatusCounts = countByStatus(reports, [
+    "waiting",
+    "processed",
+    "completed",
+  ]);
 
   const filteredReports = useMemo(() => {
-    return reports.filter((r) => {
-      const matchUser =
-        searchUser === "" ||
-        r.user?.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
-        r.user?.email?.toLowerCase().includes(searchUser.toLowerCase());
-
-      const matchStatus =
-        statusFilter === "all" || r.status === statusFilter;
-
-      const matchCategory =
-        categoryFilter === "all" || r.feedback_category === categoryFilter;
-
-      return matchUser && matchStatus && matchCategory;
+    return filterFeedbackReports(reports, {
+      category: categoryFilter,
+      searchTerm: searchUser,
+      status: statusFilter,
     });
   }, [reports, searchUser, statusFilter, categoryFilter]);
 
@@ -379,7 +376,7 @@ export default function LaporanMasalahPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-amber-100 text-sm font-medium">Menunggu</p>
-                    <p className="text-3xl font-bold mt-1">{waitingReports.length}</p>
+                    <p className="text-3xl font-bold mt-1">{reportStatusCounts.waiting}</p>
                   </div>
                   <Motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -394,7 +391,7 @@ export default function LaporanMasalahPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-cyan-100 text-sm font-medium">Diproses</p>
-                    <p className="text-3xl font-bold mt-1">{processedReports.length}</p>
+                    <p className="text-3xl font-bold mt-1">{reportStatusCounts.processed}</p>
                   </div>
                   <Motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -409,7 +406,7 @@ export default function LaporanMasalahPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-green-100 text-sm font-medium">Selesai</p>
-                    <p className="text-3xl font-bold mt-1">{completedReports.length}</p>
+                    <p className="text-3xl font-bold mt-1">{reportStatusCounts.completed}</p>
                   </div>
                   <Motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}

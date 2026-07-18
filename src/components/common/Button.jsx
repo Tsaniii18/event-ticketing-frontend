@@ -1,6 +1,7 @@
 import { createElement, forwardRef } from "react";
 import { motion as Motion } from "framer-motion";
 import LoadingSpinner from "./LoadingSpinner";
+import { joinClasses } from "../../utils";
 
 const VARIANT_CLASSES = {
   custom: "",
@@ -53,15 +54,13 @@ const Button = forwardRef(function Button(
       : VARIANT_CLASSES[variant];
   const classes = unstyled
     ? className
-    : [
+    : joinClasses(
         "ui-button",
         variantClass,
         SIZE_CLASSES[size],
         fullWidth ? "w-full" : "",
         className,
-      ]
-        .filter(Boolean)
-        .join(" ");
+      );
   const spinnerTone = ["ghost", "muted", "secondary", "soft"].includes(variant)
     ? "brand"
     : "light";

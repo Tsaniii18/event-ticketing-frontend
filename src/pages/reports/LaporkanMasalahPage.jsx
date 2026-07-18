@@ -17,12 +17,15 @@ import {
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
-  ALLOWED_IMAGE_TYPES,
+  buildFeedbackFormData,
   FADE_UP_VARIANTS as itemVariants,
   FEEDBACK_CATEGORIES as feedbackCategories,
   formatTimeAgo as getTimeAgo,
-  MAX_IMAGE_SIZE,
+  getFeedbackFormCategory,
   PAGE_CONTAINER_VARIANTS as containerVariants,
+  readFileAsDataUrl,
+  sortFeedbackByNewest,
+  validateImageFile,
 } from "../../utils";
 import Button from "../../components/common/Button";
 import useLoading from "../../hooks/useLoading";
@@ -45,8 +48,8 @@ export default function LaporkanMasalahPage() {
     try {
       startLoading();
       const response = await feedbackAPI.getMyFeedback();
-      const sortedFeedback = (response.data.feedback || []).sort((a, b) =>
-        new Date(b.created_at) - new Date(a.created_at)
+      const sortedFeedback = sortFeedbackByNewest(
+        response.data.feedback || [],
       );
       setReports(sortedFeedback);
     } catch (err) {
@@ -79,23 +82,21 @@ export default function LaporkanMasalahPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    const validation = validateImageFile(file);
+
+    if (validation.reason === "type") {
       showNotification("Format file harus JPG, JPEG, atau PNG", "Peringatan", "warning");
       return (e.target.value = "");
     }
 
-    if (file.size > MAX_IMAGE_SIZE) {
+    if (validation.reason === "size") {
       showNotification("Ukuran file maksimal 5MB", "Peringatan", "warning");
       return (e.target.value = "");
     }
 
     setProofFile(file);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    readFileAsDataUrl(file).then(setPreviewImage);
   };
 
   const removeImage = () => {
@@ -113,9 +114,7 @@ export default function LaporkanMasalahPage() {
   };
 
   const submitReport = async () => {
-    const finalCategory = form.feedback_category === "other"
-      ? form.custom_category
-      : form.feedback_category;
+    const finalCategory = getFeedbackFormCategory(form);
 
     if (!finalCategory.trim() || !form.comment.trim()) {
       showNotification("Harap isi semua field yang wajib", "Peringatan", "warning");
@@ -125,12 +124,7 @@ export default function LaporkanMasalahPage() {
     try {
       startLoading();
 
-      const formData = new FormData();
-      formData.append("feedback_category", finalCategory);
-      formData.append("comment", form.comment);
-      if (proofFile) {
-        formData.append("image", proofFile);
-      }
+      const formData = buildFeedbackFormData(form, proofFile);
 
       await feedbackAPI.createFeedback(formData);
 

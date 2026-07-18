@@ -17,10 +17,17 @@ import { AnimatePresence, motion as Motion } from "framer-motion";
 import Navbar from "../../components/layout/Navbar";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
+import useSessionUser from "../../hooks/useSessionUser";
 import { eventAPI } from "../../services";
-import { CATEGORIES, getCategoryColor, getParentCategory } from "../../utils";
+import {
+  EVENT_PARENT_CATEGORIES,
+  filterAndSortLikedEvents,
+  formatTime,
+  removeItemByKey,
+  transformLikedEvents,
+} from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -34,7 +41,7 @@ export default function LikedEventsPage() {
     startLoading,
     stopLoading,
   } = useLoading(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated: isLoggedIn } = useSessionUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortBy, setSortBy] = useState("date");
@@ -42,13 +49,10 @@ export default function LikedEventsPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (!token) {
+    if (!isLoggedIn) {
       navigate(ROUTES.LOGIN);
-      return;
     }
-    setIsLoggedIn(true);
-  }, [navigate]);
+  }, [isLoggedIn, navigate]);
 
   const fetchLikedEvents = useCallback(async () => {
     try {
@@ -73,7 +77,7 @@ export default function LikedEventsPage() {
     try {
       await eventAPI.likeEvent(eventId);
       setLikedEvents((currentEvents) =>
-        currentEvents.filter((event) => event.event_id !== eventId),
+        removeItemByKey(currentEvents, eventId, "event_id"),
       );
       showNotification("Event dihapus dari favorit", "Info", "info");
     } catch (error) {
@@ -82,96 +86,19 @@ export default function LikedEventsPage() {
     }
   };
 
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  }, []);
-
-  const formatDateRange = useCallback(
-    (dateStart, dateEnd) => {
-      if (!dateStart) return "-";
-      const start = new Date(dateStart);
-      const end = dateEnd ? new Date(dateEnd) : start;
-      const startFormatted = formatDate(dateStart);
-
-      if (start.toDateString() === end.toDateString()) return startFormatted;
-      return `${startFormatted} - ${formatDate(dateEnd)}`;
-    },
-    [formatDate],
-  );
-
   const transformedEvents = useMemo(
-    () =>
-      likedEvents.map((event) => ({
-        ...event,
-        parentCategory: getParentCategory(event.category),
-        categoryColor: getCategoryColor(event.category),
-        formattedDate: formatDateRange(event.date_start, event.date_end),
-      })),
-    [formatDateRange, likedEvents],
+    () => transformLikedEvents(likedEvents),
+    [likedEvents],
   );
-
-  const parentCategoriesForFilter = Object.keys(CATEGORIES);
-
-  const filteredEvents = useMemo(() => {
-    let filtered = [...transformedEvents];
-
-    if (selectedCategory) {
-      filtered = filtered.filter(
-        (event) => event.parentCategory === selectedCategory,
-      );
-    }
-
-    if (searchTerm) {
-      const query = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (event) =>
-          event.name?.toLowerCase().includes(query) ||
-          event.venue?.toLowerCase().includes(query) ||
-          event.location?.toLowerCase().includes(query) ||
-          event.category?.toLowerCase().includes(query),
-      );
-    }
-
-    return filtered;
-  }, [searchTerm, selectedCategory, transformedEvents]);
 
   const sortedEvents = useMemo(() => {
-    const sorted = [...filteredEvents];
-
-    sorted.sort((firstEvent, secondEvent) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case "date":
-          comparison =
-            new Date(firstEvent.date_start || 0) -
-            new Date(secondEvent.date_start || 0);
-          break;
-        case "name":
-          comparison = (firstEvent.name || "").localeCompare(
-            secondEvent.name || "",
-          );
-          break;
-        case "likes":
-          comparison =
-            (firstEvent.total_likes || 0) - (secondEvent.total_likes || 0);
-          break;
-        default:
-          comparison =
-            new Date(firstEvent.date_start || 0) -
-            new Date(secondEvent.date_start || 0);
-      }
-      return sortOrder === "desc" ? -comparison : comparison;
+    return filterAndSortLikedEvents(transformedEvents, {
+      category: selectedCategory,
+      searchTerm,
+      sortBy,
+      sortOrder,
     });
-
-    return sorted;
-  }, [filteredEvents, sortBy, sortOrder]);
+  }, [searchTerm, selectedCategory, sortBy, sortOrder, transformedEvents]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -311,7 +238,7 @@ export default function LikedEventsPage() {
                           className="ui-input"
                         >
                           <option value="">Semua Kategori</option>
-                          {parentCategoriesForFilter.map((category) => (
+                          {EVENT_PARENT_CATEGORIES.map((category) => (
                             <option key={category} value={category}>
                               {category}
                             </option>
@@ -518,14 +445,7 @@ function EventCard({ event, index, onClick, onUnlike }) {
                     size={16}
                     className="text-green-600 shrink-0"
                   />
-                  <span>
-                    {event.date_start
-                      ? new Date(event.date_start).toLocaleTimeString("id-ID", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "-"}
-                  </span>
+                  <span>{formatTime(event.date_start)}</span>
                 </div>
                 {event.district && (
                   <div className="flex items-center gap-2">

@@ -11,8 +11,6 @@ import {
   Calendar,
   CalendarDays,
   ShieldCheck,
-  Crown,
-  Star,
   Users,
   Heart,
   Flag,
@@ -27,7 +25,12 @@ import useSessionUser from "../../hooks/useSessionUser";
 import useClickOutside from "../../hooks/useClickOutside";
 import NotificationModal from "../common/NotificationModal";
 import Button from "../common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
+import {
+  getUserRoleConfig,
+  getUserRoleLabel,
+  joinClasses,
+} from "../../utils";
 
 export default function Navbar() {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
@@ -43,6 +46,15 @@ export default function Navbar() {
   const { notification, showNotification, hideNotification } =
     useNotification();
   const { user, clearSession } = useSessionUser();
+  const roleConfig = getUserRoleConfig(user?.role);
+  const RoleIcon = roleConfig.icon;
+  const isAuthenticated = user !== null;
+  const userRole = user?.role || null;
+  const shouldShowCart = isAuthenticated && userRole === "user";
+  const verificationActive =
+    location.pathname === ROUTES.USER_VERIFICATION ||
+    location.pathname === ROUTES.EVENT_VERIFICATION;
+  const reportActive = location.pathname === ROUTES.ISSUE_REPORTS;
   useClickOutside(dropdownRef, () => setProfileDropdownOpen(false));
   useClickOutside(verificationRef, () => setVerificationDropdownOpen(false));
 
@@ -57,14 +69,6 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  const getUserRole = () => {
-    return user?.role || null;
-  };
-
-  const isLoggedIn = () => {
-    return user !== null;
-  };
 
   const handleLogout = () => {
     clearSession();
@@ -86,7 +90,7 @@ export default function Navbar() {
   };
 
   const handleShoppingCartClick = () => {
-    if (!isLoggedIn()) {
+    if (!isAuthenticated) {
       showNotification(
         "Harap login terlebih dahulu",
         "Akses Ditolak",
@@ -95,7 +99,7 @@ export default function Navbar() {
       return;
     }
 
-    if (getUserRole() === "user") {
+    if (userRole === "user") {
       navigate(ROUTES.CART);
     } else {
       showNotification(
@@ -148,49 +152,6 @@ export default function Navbar() {
     }
   };
 
-  const getRoleDisplayName = (role) => {
-    switch (role) {
-      case "user":
-        return "User";
-      case "organizer":
-        return "Organizer";
-      case "admin":
-        return "Administrator";
-      default:
-        return "User";
-    }
-  };
-
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case "user":
-        return <Users className="w-4 h-4" />;
-      case "organizer":
-        return <Star className="w-4 h-4" />;
-      case "admin":
-        return <Crown className="w-4 h-4" />;
-      default:
-        return <Users className="w-4 h-4" />;
-    }
-  };
-
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "user":
-        return "bg-brand-100 text-brand-700 border-brand-200";
-      case "organizer":
-        return "bg-purple-100 text-purple-700 border-purple-200";
-      case "admin":
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      default:
-        return "bg-brand-100 text-brand-700 border-brand-200";
-    }
-  };
-
-  const shouldShowCart = () => {
-    return isLoggedIn() && getUserRole() === "user";
-  };
-
   const renderUserAvatar = () => {
     if (user?.profile_pict) {
       return (
@@ -239,29 +200,11 @@ export default function Navbar() {
     const activeClasses = "bg-white text-brand-600 shadow-lg";
     const inactiveClasses = "text-white hover:bg-white/20 hover:shadow-lg";
 
-    return `${baseClasses} ${
-      isActive ? activeClasses : inactiveClasses
-    } ${additionalClasses}`;
-  };
-
-  const getVerificationNavClass = (isActive) => {
-    const baseClasses =
-      "flex items-center space-x-2 px-6 py-3 rounded-t-lg font-medium transition-all relative group";
-    const activeClasses = "bg-white text-brand-600 shadow-lg";
-    const inactiveClasses = "text-white hover:bg-white/20 hover:shadow-lg";
-
-    return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
-  };
-
-  const isVerificationActive = () => {
-    return (
-      location.pathname === ROUTES.USER_VERIFICATION ||
-      location.pathname === ROUTES.EVENT_VERIFICATION
+    return joinClasses(
+      baseClasses,
+      isActive ? activeClasses : inactiveClasses,
+      additionalClasses,
     );
-  };
-
-  const isReportActive = () => {
-    return location.pathname === ROUTES.ISSUE_REPORTS;
   };
 
   return (
@@ -314,7 +257,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center space-x-4">
-              {shouldShowCart() && (
+              {shouldShowCart && (
                 <Button unstyled
                   className="relative text-white hover:text-amber-400 transition-colors p-2"
                   onClick={handleShoppingCartClick}
@@ -323,7 +266,7 @@ export default function Navbar() {
                 </Button>
               )}
 
-              {isLoggedIn() ? (
+              {isAuthenticated ? (
                 <div className="relative" ref={dropdownRef}>
                   <Button unstyled
                     className="hidden md:flex items-center space-x-3 text-white hover:text-amber-400 transition-colors p-2"
@@ -335,13 +278,11 @@ export default function Navbar() {
                         {user?.username}
                       </span>
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full border flex items-center space-x-1 mt-1 ${getRoleColor(
-                          user?.role
-                        )}`}
+                        className={`text-xs px-2 py-0.5 rounded-full border flex items-center space-x-1 mt-1 ${roleConfig.color}`}
                       >
-                        {getRoleIcon(user?.role)}
+                        <RoleIcon className="w-4 h-4" />
                         <span className="font-semibold">
-                          {getRoleDisplayName(user?.role)}
+                          {getUserRoleLabel(user?.role, true)}
                         </span>
                       </span>
                     </div>
@@ -356,13 +297,11 @@ export default function Navbar() {
                         {user?.username}
                       </span>
                       <span
-                        className={`text-xs px-1.5 py-0.5 rounded-full border flex items-center space-x-0.5 ${getRoleColor(
-                          user?.role
-                        )}`}
+                        className={`text-xs px-1.5 py-0.5 rounded-full border flex items-center space-x-0.5 ${roleConfig.color}`}
                       >
-                        {getRoleIcon(user?.role)}
+                        <RoleIcon className="w-4 h-4" />
                         <span className="font-semibold">
-                          {getRoleDisplayName(user?.role)}
+                          {getUserRoleLabel(user?.role, true)}
                         </span>
                       </span>
                     </div>
@@ -399,13 +338,11 @@ export default function Navbar() {
                               {user.username}
                             </p>
                             <p
-                              className={`text-sm px-3 py-1 rounded-full border flex items-center space-x-1 mt-1 w-fit ${getRoleColor(
-                                user.role
-                              )}`}
+                              className={`text-sm px-3 py-1 rounded-full border flex items-center space-x-1 mt-1 w-fit ${roleConfig.color}`}
                             >
-                              {getRoleIcon(user.role)}
+                              <RoleIcon className="w-4 h-4" />
                               <span className="font-bold">
-                                {getRoleDisplayName(user.role)}
+                                {getUserRoleLabel(user.role, true)}
                               </span>
                             </p>
                           </div>
@@ -425,7 +362,7 @@ export default function Navbar() {
                           </span>
                         </Button>
 
-                        {isLoggedIn() && getUserRole() === "user" && (
+                        {isAuthenticated && userRole === "user" && (
                           <Button unstyled
                             onClick={handleViewLikedEvents}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-pink-50 rounded-lg transition-colors group"
@@ -439,7 +376,7 @@ export default function Navbar() {
                           </Button>
                         )}
 
-                        {getUserRole() === "user" && (
+                        {userRole === "user" && (
                           <Button unstyled
                             onClick={handleViewTransactionHistory}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-green-50 rounded-lg transition-colors group"
@@ -453,8 +390,7 @@ export default function Navbar() {
                           </Button>
                         )}
 
-                        {(getUserRole() === "user" ||
-                          getUserRole() === "organizer") && (
+                        {(userRole === "user" || userRole === "organizer") && (
                           <Button unstyled
                             onClick={handleViewReportIssue}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-yellow-50 rounded-lg transition-colors group"
@@ -546,7 +482,7 @@ export default function Navbar() {
                 />
               </NavLink>
 
-              {isLoggedIn() && getUserRole() === "user" && (
+              {isAuthenticated && userRole === "user" && (
                 <NavLink
                   to={ROUTES.MY_TICKETS}
                   className={({ isActive }) => getNavLinkClass(isActive)}
@@ -563,7 +499,7 @@ export default function Navbar() {
                 </NavLink>
               )}
 
-              {isLoggedIn() && getUserRole() === "organizer" && (
+              {isAuthenticated && userRole === "organizer" && (
                 <>
                   <NavLink
                     to={ROUTES.EVENT_REGISTER}
@@ -596,7 +532,7 @@ export default function Navbar() {
                 </>
               )}
 
-              {isLoggedIn() && getUserRole() === "admin" && (
+              {isAuthenticated && userRole === "admin" && (
                 <>
                   <NavLink
                     to={ROUTES.ISSUE_REPORTS}
@@ -606,7 +542,7 @@ export default function Navbar() {
                     <span>Laporan Masalah</span>
                     <div
                       className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                        isReportActive()
+                        reportActive
                           ? "scale-x-100"
                           : "scale-x-0 group-hover:scale-x-100"
                       }`}
@@ -615,9 +551,7 @@ export default function Navbar() {
 
                   <div className="relative" ref={verificationRef}>
                     <Button unstyled
-                      className={getVerificationNavClass(
-                        isVerificationActive()
-                      )}
+                      className={getNavLinkClass(verificationActive)}
                       onClick={handleVerificationClick}
                     >
                       <ShieldCheck size={16} />
@@ -630,7 +564,7 @@ export default function Navbar() {
                       />
                       <div
                         className={`absolute bottom-0 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform ${
-                          isVerificationActive()
+                          verificationActive
                             ? "scale-x-100"
                             : "scale-x-0 group-hover:scale-x-100"
                         }`}
@@ -748,19 +682,17 @@ export default function Navbar() {
               </Button>
             </div>
 
-            {isLoggedIn() ? (
+            {isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 {renderMobileUserAvatar()}
                 <div>
                   <p className="font-bold text-lg">{user?.username}</p>
                   <p
-                    className={`text-xs px-3 py-1 rounded-full border flex items-center space-x-1 mt-1 w-fit ${getRoleColor(
-                      user.role
-                    )}`}
+                    className={`text-xs px-3 py-1 rounded-full border flex items-center space-x-1 mt-1 w-fit ${roleConfig.color}`}
                   >
-                    {getRoleIcon(user.role)}
+                    <RoleIcon className="w-4 h-4" />
                     <span className="font-bold">
-                      {getRoleDisplayName(user.role)}
+                      {getUserRoleLabel(user.role, true)}
                     </span>
                   </p>
                 </div>
@@ -826,7 +758,7 @@ export default function Navbar() {
               <span className="font-semibold">Kalender Event</span>
             </NavLink>
 
-            {isLoggedIn() && getUserRole() === "user" && (
+            {isAuthenticated && userRole === "user" && (
               <NavLink
                 to={ROUTES.LIKED_EVENTS}
                 className={({ isActive }) =>
@@ -843,7 +775,7 @@ export default function Navbar() {
               </NavLink>
             )}
 
-            {isLoggedIn() && getUserRole() === "user" && (
+            {isAuthenticated && userRole === "user" && (
               <NavLink
                 to={ROUTES.MY_TICKETS}
                 className={({ isActive }) =>
@@ -860,7 +792,7 @@ export default function Navbar() {
               </NavLink>
             )}
 
-            {isLoggedIn() && getUserRole() === "organizer" && (
+            {isAuthenticated && userRole === "organizer" && (
               <>
                 <NavLink
                   to={ROUTES.EVENT_REGISTER}
@@ -893,7 +825,7 @@ export default function Navbar() {
               </>
             )}
 
-            {isLoggedIn() && getUserRole() === "admin" && (
+            {isAuthenticated && userRole === "admin" && (
               <>
                 <NavLink
                   to={ROUTES.ISSUE_REPORTS}
@@ -946,7 +878,7 @@ export default function Navbar() {
               </>
             )}
 
-            {isLoggedIn() && (
+            {isAuthenticated && (
               <Button unstyled
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-3 p-4 rounded-lg text-red-600 hover:bg-red-50 transition-all mt-4 hover:scale-[1.02]"

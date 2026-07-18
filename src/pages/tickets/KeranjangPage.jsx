@@ -22,12 +22,17 @@ import {
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
+  copyTextToClipboard,
   formatCurrency as formatRupiah,
   formatLongDateOrEmpty as formatDate,
+  getCartTotal,
+  hasOnlyFreeTickets,
+  openExternalUrl,
+  saveLastTransaction,
   transformCartData,
 } from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -86,7 +91,7 @@ export default function KeranjangPage() {
   }, [fetchCart]);
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
+    copyTextToClipboard(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -94,15 +99,9 @@ export default function KeranjangPage() {
 
   const openPaymentPage = () => {
     if (paymentData?.payment_url) {
-      window.open(paymentData.payment_url, '_blank');
+      openExternalUrl(paymentData.payment_url);
       setShowCheckoutModal(false);
     }
-  };
-
-  const isAllFreeTickets = () => {
-    return cart.length > 0 && !cart.some((event) =>
-      event.tickets.some((ticket) => ticket.price > 0)
-    );
   };
 
   const confirmDelete = async () => {
@@ -223,7 +222,7 @@ export default function KeranjangPage() {
       return;
     }
 
-    if (isAllFreeTickets()) {
+    if (hasOnlyFreeTickets(cart)) {
       setShowFreeTicketModal(true);
       return;
     }
@@ -236,8 +235,10 @@ export default function KeranjangPage() {
       if (response.data) {
         setPaymentData(response.data);
 
-        sessionStorage.setItem('last_transaction_id', response.data.transaction_id);
-        sessionStorage.setItem('last_transaction_total', response.data.total);
+        saveLastTransaction(
+          response.data.transaction_id,
+          response.data.total,
+        );
 
         setShowCheckoutModal(true);
         await fetchCart();
@@ -255,10 +256,7 @@ export default function KeranjangPage() {
     }
   };
 
-  const totalHarga = cart.reduce(
-    (sum, event) => sum + event.tickets.reduce((ticketSum, ticket) => ticketSum + ticket.price * ticket.qty, 0),
-    0
-  );
+  const totalHarga = getCartTotal(cart);
 
   if (loading) {
     return (
@@ -748,7 +746,7 @@ export default function KeranjangPage() {
                       </div>
 
                       <div className="mt-4 text-sm text-gray-600 space-y-1">
-                        {isAllFreeTickets() ? (
+                        {hasOnlyFreeTickets(cart) ? (
                           <>
                             <p className="flex items-center gap-2">
                               <Check className="w-4 h-4 text-green-500" />

@@ -2,6 +2,7 @@ import { X, ZoomIn, ZoomOut } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Button from "./Button";
+import { clamp, IMAGE_ASPECT_RATIO_STYLES } from "../../utils";
 
 export default function ImagePreviewModal({
   isOpen,
@@ -13,11 +14,11 @@ export default function ImagePreviewModal({
   const [scale, setScale] = useState(1);
 
   const handleZoomIn = () => {
-    setScale((prev) => Math.min(prev + 0.25, 3));
+    setScale((previousScale) => clamp(previousScale + 0.25, 0.5, 3));
   };
 
   const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.25, 0.5));
+    setScale((previousScale) => clamp(previousScale - 0.25, 0.5, 3));
   };
 
   const handleClose = () => {
@@ -32,13 +33,6 @@ export default function ImagePreviewModal({
   };
 
   if (!isOpen || !imageSrc) return null;
-
-  const getAspectRatioStyle = () => {
-    if (aspectRatio === "square") {
-      return { aspectRatio: "1 / 1" };
-    }
-    return { aspectRatio: "16 / 6" };
-  };
 
   return (
     <AnimatePresence>
@@ -106,7 +100,10 @@ export default function ImagePreviewModal({
             >
               <div
                 className="relative w-full max-h-[85vh] sm:max-h-[80vh] bg-gray-900 rounded-lg sm:rounded-xl overflow-hidden shadow-2xl"
-                style={getAspectRatioStyle()}
+                style={
+                  IMAGE_ASPECT_RATIO_STYLES[aspectRatio] ||
+                  IMAGE_ASPECT_RATIO_STYLES.banner
+                }
               >
                 <img
                   src={imageSrc}

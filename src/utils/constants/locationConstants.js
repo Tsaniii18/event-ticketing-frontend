@@ -1,0 +1,30 @@
+export const YOGYAKARTA_DISTRICTS = [
+  "Tegalrejo",
+  "Jetis",
+  "Gondokusuman",
+  "Danurejan",
+  "Gedongtengen",
+  "Ngampilan",
+  "Wirobrajan",
+  "Mantrijeron",
+  "Kraton",
+  "Gondomanan",
+  "Pakualaman",
+  "Mergangsan",
+  "Umbulharjo",
+  "Kotagede",
+];
+
+export const EXTENDED_DISTRICTS = [
+  ...YOGYAKARTA_DISTRICTS,
+  "Banguntapan",
+  "Sewon",
+  "Kasihan",
+  "Pandak",
+  "Pleret",
+  "Bantul",
+  "Imogiri",
+  "Sanden",
+  "Pundong",
+  "Kretek",
+];

@@ -1,5 +1,6 @@
 import { motion as Motion } from "framer-motion";
 import LoadingSpinner from "./LoadingSpinner";
+import { joinClasses } from "../../utils";
 
 const VARIANT_CLASSES = {
   page: "min-h-screen bg-app px-4",
@@ -21,13 +22,11 @@ export default function LoadingState({
   label = "Memuat data...",
   variant = "plain",
 }) {
-  const classes = [
+  const classes = joinClasses(
     "relative grid place-items-center overflow-hidden",
     VARIANT_CLASSES[variant],
     className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  );
 
   return (
     <Motion.div

@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { ROUTES } from "./utils/routeConstants";
+import { ROUTES } from "./utils/constants/routeConstants";
 
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
 const DaftarPage = lazy(() => import("./pages/auth/DaftarPage"));

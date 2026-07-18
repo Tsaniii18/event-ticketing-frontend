@@ -5,6 +5,11 @@ import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../common/Button";
 import { X, Camera, User, Mail, Lock, Building, MapPin, FileText, Eye, EyeOff } from "lucide-react";
 import useLoading from "../../hooks/useLoading";
+import {
+  buildProfileFormData,
+  createObjectPreviewUrl,
+  revokeObjectUrls,
+} from "../../utils";
 
 export default function EditProfileModal({ user, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
@@ -47,7 +52,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
         [name]: file
       }));
 
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = createObjectPreviewUrl(file);
       setPreviewImages(prev => ({
         ...prev,
         [name]: previewUrl
@@ -75,22 +80,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
     startLoading();
 
     try {
-      const submitData = new FormData();
-
-      if (user.role === 'user' || user.role === 'organizer') {
-        submitData.append('name', formData.name);
-        submitData.append('email', formData.email);
-        if (formData.password) {
-          submitData.append('password', formData.password);
-        }
-        if (formData.profile_pict) {
-          submitData.append('profile_pict', formData.profile_pict);
-        }
-      }
-
-      if (user.role === 'admin' && formData.password) {
-        submitData.append('password', formData.password);
-      }
+      const submitData = buildProfileFormData(user, formData);
 
 
       const response = await userAPI.updateProfile(submitData);
@@ -98,11 +88,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
 
       showNotification('Profil berhasil diperbarui!', 'Update Berhasil', 'success');
 
-      Object.values(previewImages).forEach(url => {
-        if (url && url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
-        }
-      });
+      revokeObjectUrls(previewImages);
 
       setFormData(prev => ({ ...prev, password: '' }));
     } catch (error) {
@@ -114,11 +100,7 @@ export default function EditProfileModal({ user, onClose, onUpdate }) {
   };
 
   const handleClose = () => {
-    Object.values(previewImages).forEach(url => {
-      if (url && url.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
-      }
-    });
+    revokeObjectUrls(previewImages);
     onClose();
   };
 

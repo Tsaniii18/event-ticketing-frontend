@@ -7,7 +7,6 @@ import {
   Shapes,
   CheckCircle,
   XCircle,
-  Clock,
   Scale,
   Building,
   FileText,
@@ -19,8 +18,6 @@ import {
   ChevronDown,
   ChevronUp,
   LogIn,
-  PlayCircle,
-  Flag,
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import api, { eventAPI } from "../../services";
@@ -28,10 +25,23 @@ import useNotification from "../../hooks/useNotification";
 import useImagePreview from "../../hooks/useImagePreview";
 import {
   formatCompactNumber as formatNumber,
+  EVENT_DETAIL_STATUS_CONFIG,
   EVENT_DETAIL_STATUS_LABELS,
   formatLongDateTime as formatDateTime,
   formatRupiahTitleCase as formatRupiah,
   formatShortDateRange as formatDate,
+  getCartFailureMessages,
+  getEventAccessFlags,
+  getLikedEventIds,
+  getLikeCountAfterToggle,
+  getSelectedTicketCartItems,
+  getSelectedTicketTotal,
+  hasSelectedTickets,
+  partitionCartResults,
+  readTokenPayload,
+  resetTicketQuantities,
+  transformSelectableTicketCategories,
+  updateTicketQuantity,
 } from "../../utils";
 import NotificationModal from "../../components/common/NotificationModal";
 import TicketCategoryDetailModal from "../../components/events/TicketCategoryDetailModal";
@@ -40,65 +50,26 @@ import {
   CartSummary,
   TicketItem,
 } from "../../components/events/EventTicketSelection";
+import { DescriptionWithNewlines } from "../../components/events/EventFormFields";
 import Button from "../../components/common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
-const formatDescriptionWithNewlines = (text) => {
-  if (!text) return "";
-  const lines = text.split("\n");
-  return lines.map((line, index) => (
-    <span key={index}>
-      {line}
-      {index < lines.length - 1 && <br />}
-    </span>
-  ));
-};
-
 function StatusBadge({ status }) {
-  const getStatusIcon = () => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case "rejected":
-        return <XCircle className="w-5 h-5 text-red-600" />;
-      case "pending":
-        return <Clock className="w-5 h-5 text-yellow-600" />;
-      case "active":
-        return <PlayCircle className="w-5 h-5 text-emerald-600" />;
-      case "ended":
-        return <Flag className="w-5 h-5 text-gray-600" />;
-      default:
-        return <Clock className="w-5 h-5 text-gray-600" />;
-    }
+  const config = EVENT_DETAIL_STATUS_CONFIG[status] || {
+    className: "bg-gray-100 text-gray-700 border border-gray-200",
+    icon: EVENT_DETAIL_STATUS_CONFIG.pending.icon,
+    iconClassName: "text-gray-600",
   };
-
-  const getStatusText = () => {
-    return EVENT_DETAIL_STATUS_LABELS[status] || status;
-  };
-
-  const getStatusColor = () => {
-    switch (status) {
-      case "pending":
-        return "ui-badge-warning";
-      case "rejected":
-        return "ui-badge-danger";
-      case "approved":
-        return "ui-badge-success";
-      case "active":
-        return "ui-badge-success";
-      case "ended":
-        return "bg-gray-100 text-gray-700 border border-gray-300";
-      default:
-        return "bg-gray-100 text-gray-700 border border-gray-200";
-    }
-  };
+  const StatusIcon = config.icon;
 
   return (
-    <div className={`ui-badge py-2 ${getStatusColor()}`}>
-      {getStatusIcon()}
-      <span className="font-semibold">{getStatusText()}</span>
+    <div className={`ui-badge py-2 ${config.className}`}>
+      <StatusIcon className={`w-5 h-5 ${config.iconClassName}`} />
+      <span className="font-semibold">
+        {EVENT_DETAIL_STATUS_LABELS[status] || status}
+      </span>
     </div>
   );
 }
@@ -409,7 +380,7 @@ function ExpandableRules({ rules, maxLines = 5 }) {
             : ""
         }`}
       >
-        {formatDescriptionWithNewlines(rules)}
+        <DescriptionWithNewlines className="" text={rules} />
       </div>
 
       {needsExpand && !isExpanded && (
@@ -525,21 +496,9 @@ export default function EventDetail() {
         setEvent(eventData);
         setTotalLikes(eventData.total_likes || 0);
 
-        const formattedTickets =
-          eventData.ticket_categories?.map((ticket) => ({
-            ticket_category_id: ticket.ticket_category_id,
-            type: ticket.name,
-            desc: ticket.description || "Tiket masuk event",
-            price: ticket.price,
-            stock: ticket.quota - (ticket.sold || 0),
-            quota: ticket.quota,
-            sold: ticket.sold || 0,
-            date_time_start: ticket.date_time_start,
-            date_time_end: ticket.date_time_end,
-            qty: 0,
-          })) || [];
-
-        setTickets(formattedTickets);
+        setTickets(
+          transformSelectableTicketCategories(eventData.ticket_categories),
+        );
         checkUserRoleAndOwnership(eventData);
       } catch (err) {
         console.error("Error fetching event detail:", err);
@@ -551,39 +510,24 @@ export default function EventDetail() {
     };
 
     const checkUserRoleAndOwnership = (eventData) => {
-      try {
-        const token = sessionStorage.getItem("token");
-        if (token) {
-          setIsLoggedIn(true);
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          const isEventOwner = payload.user_id === eventData.owner_id;
-          const isAdminUser = payload.role === "admin";
-          const isEOUser = payload.role === "organizer";
+      const payload = readTokenPayload();
 
-          setIsOwner(isEventOwner);
-          setIsAdmin(isAdminUser);
-          setIsEO(isEOUser);
-          setIsRegularUser(
-            payload.role === "user" &&
-              !isEventOwner &&
-              !isAdminUser &&
-              !isEOUser
-          );
-        } else {
-          setIsLoggedIn(false);
-          setIsOwner(false);
-          setIsAdmin(false);
-          setIsEO(false);
-          setIsRegularUser(false);
-        }
-      } catch (err) {
-        console.error("Error checking user role:", err);
+      if (!payload) {
         setIsLoggedIn(false);
         setIsOwner(false);
         setIsAdmin(false);
         setIsEO(false);
         setIsRegularUser(false);
+        return;
       }
+
+      const access = getEventAccessFlags(payload, eventData.owner_id);
+
+      setIsLoggedIn(true);
+      setIsOwner(access.isOwner);
+      setIsAdmin(access.isAdmin);
+      setIsEO(access.isOrganizer);
+      setIsRegularUser(access.isRegularUser);
     };
 
     if (eventId) {
@@ -597,10 +541,10 @@ export default function EventDetail() {
 
       try {
         const response = await eventAPI.getMyLikedEvents();
-        const likedEventIds = (response.data?.liked_event || []).map(
-          (e) => e.event_id
+        const likedEventIds = getLikedEventIds(
+          response.data?.liked_event,
         );
-        setIsLiked(likedEventIds.includes(eventId));
+        setIsLiked(likedEventIds.has(eventId));
       } catch (err) {
         console.error("Error fetching liked status:", err);
       }
@@ -629,7 +573,9 @@ export default function EventDetail() {
     const previousTotalLikes = totalLikes;
 
     setIsLiked(!isLiked);
-    setTotalLikes((prev) => (isLiked ? Math.max(0, prev - 1) : prev + 1));
+    setTotalLikes((currentLikes) =>
+      getLikeCountAfterToggle(currentLikes, isLiked),
+    );
 
     try {
       const response = await eventAPI.likeEvent(eventId);
@@ -642,7 +588,7 @@ export default function EventDetail() {
         ...prev,
         total_likes:
           response.data?.event_total_like ??
-          (isLiked ? Math.max(0, prev.total_likes - 1) : prev.total_likes + 1),
+          getLikeCountAfterToggle(prev.total_likes, isLiked),
       }));
     } catch (err) {
       console.error("Error toggling like:", err);
@@ -655,23 +601,14 @@ export default function EventDetail() {
   };
 
   const updateQty = (index, delta) => {
-    setTickets((prev) =>
-      prev.map((t, i) => {
-        if (i !== index) return t;
-        const newQty = Math.min(Math.max(t.qty + delta, 0), t.stock);
-        return { ...t, qty: newQty };
-      })
+    setTickets((currentTickets) =>
+      updateTicketQuantity(currentTickets, index, delta),
     );
   };
 
   const handleAddToCart = async () => {
     try {
-      const cartItems = tickets
-        .filter((ticket) => ticket.qty > 0)
-        .map((ticket) => ({
-          ticket_category_id: ticket.ticket_category_id,
-          quantity: ticket.qty,
-        }));
+      const cartItems = getSelectedTicketCartItems(tickets);
 
       if (cartItems.length === 0) {
         showNotification(
@@ -686,19 +623,8 @@ export default function EventDetail() {
         cartItems.map((item) => api.post("/api/cart", item))
       );
 
-      const successfulItems = results.filter(
-        (result) =>
-          result.status === "fulfilled" &&
-          (result.value.status === 200 || result.value.status === 201)
-      );
-
-      const failedItems = results.filter(
-        (result) =>
-          result.status === "rejected" ||
-          (result.status === "fulfilled" &&
-            result.value.status !== 200 &&
-            result.value.status !== 201)
-      );
+      const { failed: failedItems, successful: successfulItems } =
+        partitionCartResults(results);
 
       if (successfulItems.length > 0) {
         showNotification(
@@ -706,7 +632,7 @@ export default function EventDetail() {
           "Sukses",
           "success"
         );
-        setTickets((prev) => prev.map((t) => ({ ...t, qty: 0 })));
+        setTickets(resetTicketQuantities);
 
         if (failedItems.length === 0) {
           navigate(ROUTES.CART);
@@ -714,17 +640,7 @@ export default function EventDetail() {
       }
 
       if (failedItems.length > 0) {
-        const errorMessages = failedItems.map((item) => {
-          if (item.status === "rejected") {
-            return (
-              item.reason?.response?.data?.error ||
-              item.reason?.message ||
-              "Error tidak diketahui"
-            );
-          } else {
-            return item.value?.data?.error || `Status: ${item.value.status}`;
-          }
-        });
+        const errorMessages = getCartFailureMessages(failedItems);
 
         showNotification(
           `${failedItems.length} tiket gagal ditambahkan: ${errorMessages.join(
@@ -859,11 +775,8 @@ export default function EventDetail() {
     );
   }
 
-  const totalHarga = tickets.reduce(
-    (sum, ticket) => sum + ticket.price * ticket.qty,
-    0
-  );
-  const adaTiketDipilih = tickets.some((t) => t.qty > 0);
+  const totalHarga = getSelectedTicketTotal(tickets);
+  const adaTiketDipilih = hasSelectedTickets(tickets);
 
   const canVerify = isAdmin && event.status === "pending";
   const canPurchase = isRegularUser;
@@ -1066,7 +979,10 @@ export default function EventDetail() {
                     </div>
                     <div className="p-4 sm:p-6">
                       <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-700 leading-relaxed">
-                        {formatDescriptionWithNewlines(event.description)}
+                        <DescriptionWithNewlines
+                          className=""
+                          text={event.description}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1175,7 +1091,6 @@ export default function EventDetail() {
         ticket={selectedTicket}
         formatRupiah={formatRupiah}
         formatDateTime={formatDateTime}
-        formatDescriptionWithNewlines={formatDescriptionWithNewlines}
       />
 
       <ImagePreviewModal

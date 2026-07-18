@@ -21,17 +21,25 @@ import useNotification from "../../hooks/useNotification";
 import useImagePreview from "../../hooks/useImagePreview";
 import { motion as Motion } from "framer-motion";
 import {
-  CATEGORIES,
+  buildEventFormData,
+  EVENT_PARENT_CATEGORIES,
+  createObjectPreviewUrl,
+  formatCurrency,
   formatDateForDisplay,
+  getFileDisplayName,
+  getChildEventCategories,
   getMinimumEventDate as getMinDate,
-  MAX_IMAGE_SIZE,
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
   REGISTRATION_VENUES as YOGYAKARTA_VENUES,
+  removeItemByKey,
+  replaceItemByKey,
+  validateImageFile,
+  validateTicketDateRange,
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 
 export default function EventRegister() {
@@ -116,7 +124,9 @@ export default function EventRegister() {
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > MAX_IMAGE_SIZE) {
+      const validation = validateImageFile(file, { allowedTypes: null });
+
+      if (validation.reason === "size") {
         showNotification(
           `Ukuran file ${type} terlalu besar! Maksimal 5MB.`,
           "Peringatan",
@@ -126,7 +136,7 @@ export default function EventRegister() {
         return;
       }
 
-      if (!file.type.startsWith("image/")) {
+      if (validation.reason === "type") {
         showNotification(
           `File ${type} harus berupa gambar!`,
           "Peringatan",
@@ -145,46 +155,19 @@ export default function EventRegister() {
     const file = type === "poster" ? posterFile : bannerFile;
     if (file) {
       openImagePreview({
-        image: URL.createObjectURL(file),
+        image: createObjectPreviewUrl(file),
         type,
       });
     }
   };
 
-const validateTicketDates = (ticketStart, ticketEnd) => {
-  if (!formData.date_start || !formData.date_end) {
-    return { isValid: false, message: "Harap tentukan tanggal event terlebih dahulu" };
-  }
-
-  const eventStart = new Date(formData.date_start);
-  const eventEnd = new Date(formData.date_end);
-  const ticketStartDate = new Date(ticketStart);
-  const ticketEndDate = new Date(ticketEnd);
-
-  eventStart.setHours(0, 0, 0, 0);
-  eventEnd.setHours(23, 59, 59, 999);
-  ticketStartDate.setHours(0, 0, 0, 0);
-  ticketEndDate.setHours(23, 59, 59, 999);
-
-  if (ticketStartDate < eventStart) {
-    return {
-      isValid: false,
-      message: `Tanggal mulai tiket tidak boleh sebelum tanggal event (${formatDateForDisplay(formData.date_start)})`
-    };
-  }
-
-  if (ticketEndDate > eventEnd) {
-    return {
-      isValid: false,
-      message: `Tanggal selesai tiket tidak boleh setelah tanggal event (${formatDateForDisplay(formData.date_end)})`
-    };
-  }
-
-  return { isValid: true };
-};
-
 const handleAddTicket = (ticket) => {
-  const validation = validateTicketDates(ticket.date_start, ticket.date_end);
+  const validation = validateTicketDateRange({
+    eventEnd: formData.date_end,
+    eventStart: formData.date_start,
+    ticketEnd: ticket.date_end,
+    ticketStart: ticket.date_start,
+  });
   if (!validation.isValid) {
     showNotification(validation.message, "Validasi Gagal", "warning");
     return;
@@ -195,17 +178,18 @@ const handleAddTicket = (ticket) => {
 };
 
 const handleUpdateTicket = (updatedTicket) => {
-  const validation = validateTicketDates(updatedTicket.date_start, updatedTicket.date_end);
+  const validation = validateTicketDateRange({
+    eventEnd: formData.date_end,
+    eventStart: formData.date_start,
+    ticketEnd: updatedTicket.date_end,
+    ticketStart: updatedTicket.date_start,
+  });
   if (!validation.isValid) {
     showNotification(validation.message, "Validasi Gagal", "warning");
     return;
   }
 
-  setTicketList((prev) =>
-    prev.map((ticket) =>
-      ticket.id === updatedTicket.id ? updatedTicket : ticket
-    )
-  );
+  setTicketList((tickets) => replaceItemByKey(tickets, updatedTicket));
   setEditingTicket(null);
   showNotification("Kategori tiket berhasil diperbarui", "Sukses", "success");
 };
@@ -244,7 +228,7 @@ const handleCloseModal = () => {
 };
 
   const removeTicketCategory = (id) => {
-    setTicketList((prev) => prev.filter((ticket) => ticket.id !== id));
+    setTicketList((tickets) => removeItemByKey(tickets, id));
     showNotification("Kategori tiket berhasil dihapus", "Sukses", "success");
   };
 
@@ -285,40 +269,12 @@ const handleCloseModal = () => {
     }
 
     try {
-      const submitData = new FormData();
-
-      Object.keys(formData).forEach((key) => {
-        if (formData[key]) {
-          if (key === "date_start" || key === "date_end") {
-            const date = new Date(formData[key]);
-            submitData.append(key, date.toISOString());
-          } else {
-            submitData.append(key, formData[key]);
-          }
-        }
+      const submitData = buildEventFormData({
+        bannerFile,
+        formData,
+        posterFile,
+        tickets: ticketList,
       });
-
-      if (posterFile) submitData.append("image", posterFile);
-      if (bannerFile) submitData.append("flyer", bannerFile);
-
-      if (ticketList.length > 0) {
-        const ticketCategories = ticketList.map((ticket) => ({
-          name: ticket.name,
-          price: parseFloat(ticket.price),
-          quota: parseInt(ticket.quota),
-          description: ticket.description,
-          date_time_start: new Date(
-            ticket.date_start + "T" + ticket.time_start + ":00Z"
-          ).toISOString(),
-          date_time_end: new Date(
-            ticket.date_end + "T" + ticket.time_end + ":00Z"
-          ).toISOString(),
-        }));
-        submitData.append(
-          "ticket_categories",
-          JSON.stringify(ticketCategories)
-        );
-      }
 
       const response = await eventAPI.createEvent(submitData);
 
@@ -362,10 +318,7 @@ const handleCloseModal = () => {
     setIsCustomVenue(false);
   };
 
-  const getPosterFileName = () => (posterFile ? posterFile.name : "Pilih file");
-  const getBannerFileName = () => (bannerFile ? bannerFile.name : "Pilih file");
-
-  const childCategories = CATEGORIES[formData.category] || [];
+  const childCategories = getChildEventCategories(formData.category);
 
   return (
     <div>
@@ -463,7 +416,7 @@ const handleCloseModal = () => {
                       required
                     >
                       <option value="">Pilih kategori event</option>
-                      {Object.keys(CATEGORIES).map((category) => (
+                      {EVENT_PARENT_CATEGORIES.map((category) => (
                         <option key={category} value={category}>
                           {category}
                         </option>
@@ -540,7 +493,7 @@ const handleCloseModal = () => {
                         <Folder className="text-brand-500" size={24} />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-700">
-                            {getPosterFileName()}
+                            {getFileDisplayName(posterFile)}
                           </p>
                           <p className="text-xs text-gray-500">
                             Klik untuk memilih file (maks. 5MB)
@@ -577,7 +530,7 @@ const handleCloseModal = () => {
                         <Folder className="text-brand-500" size={24} />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-700">
-                            {getBannerFileName()}
+                            {getFileDisplayName(bannerFile)}
                           </p>
                           <p className="text-xs text-gray-500">
                             Klik untuk memilih file (maks. 5MB)
@@ -778,7 +731,7 @@ const handleCloseModal = () => {
                                 {t.name}
                               </h3>
                               <span className="ui-badge ui-badge-info px-2 py-1">
-                                Rp {parseFloat(t.price).toLocaleString("id-ID")}
+                                {formatCurrency(Number(t.price))}
                               </span>
                             </div>
                             {t.description && (

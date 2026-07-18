@@ -1,14 +1,19 @@
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import Button from "../common/Button";
+import { filterVenues, joinClasses } from "../../utils";
 
-export function DescriptionWithNewlines({ text }) {
-  if (!text) return null;
+export function DescriptionWithNewlines({
+  className = "ui-helper mb-3",
+  fallback = null,
+  text,
+}) {
+  if (!text) return fallback;
+
+  const classes = joinClasses("whitespace-pre-line", className);
 
   return (
-    <div className="ui-helper mb-3 whitespace-pre-line">
-      {text}
-    </div>
+    <div className={classes}>{text}</div>
   );
 }
 
@@ -23,15 +28,7 @@ export function VenueDropdown({
   const [isOpen, setIsOpen] = useState(false);
 
   const filteredVenues = useMemo(() => {
-    if (!searchTerm) return venues;
-
-    const query = searchTerm.toLowerCase();
-    return venues.filter(
-      (venue) =>
-        venue.name.toLowerCase().includes(query) ||
-        venue.district.toLowerCase().includes(query) ||
-        venue.address.toLowerCase().includes(query)
-    );
+    return filterVenues(venues, searchTerm);
   }, [searchTerm, venues]);
 
   const updateField = (name, fieldValue) => {

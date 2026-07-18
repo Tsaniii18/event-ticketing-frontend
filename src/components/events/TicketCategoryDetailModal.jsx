@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../common/Button";
+import { DescriptionWithNewlines } from "./EventFormFields";
 
 export default function TicketCategoryDetailModal({
   isOpen,
@@ -8,7 +9,6 @@ export default function TicketCategoryDetailModal({
   ticket,
   formatRupiah,
   formatDateTime,
-  formatDescriptionWithNewlines,
 }) {
   return (
     <AnimatePresence>
@@ -81,7 +81,10 @@ export default function TicketCategoryDetailModal({
                   Deskripsi Tiket
                 </h5>
                 <div className="prose prose-sm sm:prose-base max-w-none text-gray-700 leading-relaxed">
-                  {formatDescriptionWithNewlines(ticket.desc)}
+                  <DescriptionWithNewlines
+                    className=""
+                    text={ticket.desc}
+                  />
                 </div>
               </div>
 

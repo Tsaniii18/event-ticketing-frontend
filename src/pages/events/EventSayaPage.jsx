@@ -26,15 +26,19 @@ import {
 } from "../../components/common/Table";
 import { eventAPI } from "../../services";
 import {
-  CATEGORIES,
+  EVENT_PARENT_CATEGORIES,
   EVENT_OWNER_STATUS_LABELS,
+  EVENT_OWNER_STATUS_STYLES,
+  filterOwnedEvents,
+  formatDateForDisplay,
+  formatNumericDate,
   getCategoryColor,
   getParentCategory,
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
-import { routeTo } from "../../utils/routeConstants";
+import { routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -80,53 +84,21 @@ export default function EventSayaPage() {
     fetchMyEvents();
   };
 
-  const applyFilters = useCallback(() => {
-    let filtered = [...events];
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (event) =>
-          event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.venue?.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-    }
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((event) => event.status === statusFilter);
-    }
-
-    if (categoryFilter) {
-      filtered = filtered.filter(
-        (event) => getParentCategory(event.category) === categoryFilter,
-      );
-    }
-
-    if (districtFilter) {
-      filtered = filtered.filter(
-        (event) => event.district === districtFilter,
-      );
-    }
-
-    if (dateFilter) {
-      filtered = filtered.filter((event) => {
-        const eventDate = new Date(event.date_start)
-          .toISOString()
-          .split("T")[0];
-        return eventDate === dateFilter;
-      });
-    }
-
-    setFilteredEvents(filtered);
-  }, [categoryFilter, dateFilter, districtFilter, events, searchTerm, statusFilter]);
-
   useEffect(() => {
     fetchMyEvents();
   }, [fetchMyEvents]);
 
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    setFilteredEvents(
+      filterOwnedEvents(events, {
+        category: categoryFilter,
+        date: dateFilter,
+        district: districtFilter,
+        searchTerm,
+        status: statusFilter,
+      }),
+    );
+  }, [categoryFilter, dateFilter, districtFilter, events, searchTerm, statusFilter]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -142,26 +114,6 @@ export default function EventSayaPage() {
     categoryFilter ||
     districtFilter ||
     dateFilter;
-
-  const getStatusText = (status) => {
-    return EVENT_OWNER_STATUS_LABELS[status] || status;
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "ui-badge-warning";
-      case "rejected":
-        return "ui-badge-danger";
-      case "approved":
-      case "active":
-        return "ui-badge-success";
-      case "ended":
-        return "bg-gray-100 text-gray-700 border border-gray-300";
-      default:
-        return "bg-gray-100 text-gray-700 border border-gray-200";
-    }
-  };
 
   if (loading) {
     return (
@@ -352,7 +304,7 @@ export default function EventSayaPage() {
                             className="ui-input"
                           >
                             <option value="">Semua Kategori</option>
-                            {Object.keys(CATEGORIES).map((category) => (
+                            {EVENT_PARENT_CATEGORIES.map((category) => (
                               <option key={category} value={category}>
                                 {category}
                               </option>
@@ -421,11 +373,11 @@ export default function EventSayaPage() {
                             Filter aktif:
                             {searchTerm && ` Pencarian: "${searchTerm}"`}
                             {statusFilter !== "all" &&
-                              ` Status: ${getStatusText(statusFilter)}`}
+                              ` Status: ${EVENT_OWNER_STATUS_LABELS[statusFilter] || statusFilter}`}
                             {categoryFilter && ` Kategori: ${categoryFilter}`}
                             {districtFilter && ` Kecamatan: ${districtFilter}`}
                             {dateFilter &&
-                              ` Tanggal: ${new Date(dateFilter).toLocaleDateString("id-ID")}`}
+                              ` Tanggal: ${formatNumericDate(dateFilter)}`}
                           </p>
                         </Motion.div>
                       )}
@@ -520,24 +472,16 @@ export default function EventSayaPage() {
                                 {event.location}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {new Date(event.date_start).toLocaleDateString(
-                                  "id-ID",
-                                  {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  },
-                                )}
+                                {formatDateForDisplay(event.date_start)}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-2">
                               <span
-                                className={`ui-badge w-fit py-1.5 ${getStatusColor(event.status)}`}
+                                className={`ui-badge w-fit py-1.5 ${EVENT_OWNER_STATUS_STYLES[event.status] || "bg-gray-100 text-gray-700 border border-gray-200"}`}
                               >
-                                {getStatusText(event.status)}
+                                {EVENT_OWNER_STATUS_LABELS[event.status] || event.status}
                               </span>
                               {event.approval_comment &&
                                 event.status === "rejected" && (

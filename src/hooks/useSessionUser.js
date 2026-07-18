@@ -1,12 +1,11 @@
 import { useCallback, useState } from "react";
-import { readSession } from "../utils";
+import { clearStoredSession, readSession } from "../utils";
 
 export default function useSessionUser() {
   const [session, setSession] = useState(readSession);
 
   const clearSession = useCallback(() => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
+    clearStoredSession();
     setSession({ user: null, token: null });
   }, []);
 

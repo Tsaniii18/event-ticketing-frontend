@@ -27,15 +27,18 @@ import {
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
+  countByStatus,
+  filterAndSortTransactions,
+  filterVisibleCountItems,
   formatCurrency,
   formatRawDateRange as formatDateRange,
   formatTimeRange,
-  getTransactionStatusLabel as getStatusLabel,
-  groupTicketsByCategory,
+  sumByStatus,
   TRANSACTION_STATUS_CONFIG as STATUS_CONFIG,
+  transformTransactionHistory,
 } from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -67,42 +70,9 @@ export default function RiwayatTransaksi() {
       const response = await transactionAPI.getTransactionHistory();
 
       if (response.data && response.data.transactions) {
-        const transformedTransactions = response.data.transactions.map(transaction => ({
-          transactionId: transaction.transaction_id,
-          transactionDate: new Date(transaction.transaction_time).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          }),
-          transactionTime: transaction.transaction_time,
-          transactionDateTime: new Date(transaction.transaction_time),
-          totalAmount: transaction.price_total,
-          status: transaction.transaction_status,
-          statusLabel: getStatusLabel(transaction.transaction_status),
-          linkPayment: transaction.link_payment,
-          events: transaction.events?.map(event => ({
-            id: event.event_id,
-            eventName: event.event_name,
-            address: event.location,
-            city: event.city,
-            venue: event.venue,
-            startDate: new Date(event.date_start).toLocaleDateString('id-ID', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            }),
-            endDate: new Date(event.date_end).toLocaleDateString('id-ID', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            }),
-            image: event.image,
-            eventSubtotal: event.event_subtotal,
-            details: groupTicketsByCategory(event.ticket_details)
-          })) || []
-        }));
-
-        setTransactions(transformedTransactions);
+        setTransactions(
+          transformTransactionHistory(response.data.transactions),
+        );
       } else {
         setTransactions([]);
       }
@@ -119,66 +89,38 @@ export default function RiwayatTransaksi() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const statusStats = useMemo(() => {
-    const stats = {
-      all: transactions.length,
-      paid: 0,
-      pending: 0,
-      failed: 0,
-      expired: 0,
-      cancelled: 0
-    };
+  const statusStats = useMemo(
+    () =>
+      countByStatus(transactions, [
+        "paid",
+        "pending",
+        "failed",
+        "expired",
+        "cancelled",
+      ]),
+    [transactions],
+  );
 
-    transactions.forEach(t => {
-      if (stats[t.status] !== undefined) {
-        stats[t.status]++;
-      }
-    });
+  const totalSpent = useMemo(
+    () =>
+      sumByStatus(
+        transactions,
+        "paid",
+        (transaction) => transaction.totalAmount,
+      ),
+    [transactions],
+  );
 
-    return stats;
-  }, [transactions]);
-
-  const totalSpent = useMemo(() => {
-    return transactions
-      .filter(t => t.status === 'paid')
-      .reduce((sum, t) => sum + t.totalAmount, 0);
-  }, [transactions]);
-
-  const filteredTransactions = useMemo(() => {
-    let filtered = [...transactions];
-
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(t => t.status === selectedStatus);
-    }
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(t =>
-        t.transactionId.toLowerCase().includes(term) ||
-        t.events.some(e => e.eventName.toLowerCase().includes(term))
-      );
-    }
-
-    filtered.sort((a, b) => {
-      let compareResult = 0;
-      switch (sortBy) {
-        case "date":
-          compareResult = a.transactionDateTime - b.transactionDateTime;
-          break;
-        case "amount":
-          compareResult = a.totalAmount - b.totalAmount;
-          break;
-        case "status":
-          compareResult = a.status.localeCompare(b.status);
-          break;
-        default:
-          compareResult = a.transactionDateTime - b.transactionDateTime;
-      }
-      return sortOrder === "desc" ? -compareResult : compareResult;
-    });
-
-    return filtered;
-  }, [transactions, selectedStatus, searchTerm, sortBy, sortOrder]);
+  const filteredTransactions = useMemo(
+    () =>
+      filterAndSortTransactions(transactions, {
+        searchTerm,
+        sortBy,
+        sortOrder,
+        status: selectedStatus,
+      }),
+    [searchTerm, selectedStatus, sortBy, sortOrder, transactions],
+  );
 
   const toggleTransactionDropdown = (transactionId) => {
     setExpandedTransactions(prev => ({
@@ -354,13 +296,13 @@ export default function RiwayatTransaksi() {
               className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 mb-6"
             >
               <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                {[
+                {filterVisibleCountItems([
                   { key: "all", label: "Semua", count: statusStats.all },
                   { key: "paid", label: "Berhasil", count: statusStats.paid },
                   { key: "pending", label: "Menunggu", count: statusStats.pending },
                   { key: "failed", label: "Gagal", count: statusStats.failed },
                   { key: "expired", label: "Kadaluarsa", count: statusStats.expired }
-                ].filter(tab => tab.key === "all" || tab.count > 0).map((tab) => (
+                ]).map((tab) => (
                   <Button unstyled
                     key={tab.key}
                     onClick={() => setSelectedStatus(tab.key)}

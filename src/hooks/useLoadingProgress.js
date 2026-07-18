@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { clamp } from "../utils";
 
 export default function useLoadingProgress({
   initialProgress = 0,
@@ -25,7 +26,7 @@ export default function useLoadingProgress({
 
     timerRef.current = setInterval(() => {
       setProgress((currentProgress) => {
-        const nextProgress = Math.min(currentProgress + step, 100);
+        const nextProgress = clamp(currentProgress + step, 0, 100);
 
         if (nextProgress === 100) {
           stopProgress();

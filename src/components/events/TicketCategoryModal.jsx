@@ -5,8 +5,12 @@ import useClickOutside from "../../hooks/useClickOutside";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../common/Button";
 import {
+  formatNumericDate,
+  filterTicketCategoryOptions,
   PREDEFINED_TICKET_CATEGORIES as predefinedCategories,
   TIME_OPTIONS as timeOptions,
+  validateTicketSchedule,
+  validateTicketTiming,
 } from "../../utils";
 
 export default function TicketCategoryModal({
@@ -36,8 +40,9 @@ export default function TicketCategoryModal({
   const { showNotification } = useNotification();
   useClickOutside(dropdownRef, () => setShowDropdown(false));
 
-  const filteredCategories = predefinedCategories.filter(category =>
-    category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCategories = filterTicketCategoryOptions(
+    predefinedCategories,
+    searchQuery,
   );
 
   useEffect(() => {
@@ -77,33 +82,9 @@ export default function TicketCategoryModal({
       const newData = { ...prev, [name]: value };
 
       if (name === "date_start" || name === "date_end" || name === "time_start" || name === "time_end") {
-        const dateStart = new Date(name === "date_start" ? value : prev.date_start);
-        const dateEnd = new Date(name === "date_end" ? value : prev.date_end);
-        const timeStart = name === "time_start" ? value : prev.time_start;
-        const timeEnd = name === "time_end" ? value : prev.time_end;
-
         if (newData.date_start && newData.date_end) {
-          dateStart.setHours(0, 0, 0, 0);
-          dateEnd.setHours(0, 0, 0, 0);
-
-          if (dateStart > dateEnd) {
-            setErrorMessage("Tanggal mulai tidak boleh lebih besar dari tanggal selesai!");
-          } else if (dateStart.getTime() === dateEnd.getTime()) {
-            const [startHour, startMinute] = timeStart.split(':').map(Number);
-            const [endHour, endMinute] = timeEnd.split(':').map(Number);
-            const startTotalMinutes = startHour * 60 + startMinute;
-            const endTotalMinutes = endHour * 60 + endMinute;
-
-            if (startTotalMinutes > endTotalMinutes) {
-              setErrorMessage("Jam mulai tidak boleh lebih besar dari jam selesai pada tanggal yang sama!");
-            } else if (startTotalMinutes === endTotalMinutes) {
-              setErrorMessage("Jam mulai dan jam selesai tidak boleh sama!");
-            } else {
-              setErrorMessage("");
-            }
-          } else {
-            setErrorMessage("");
-          }
+          const validation = validateTicketTiming(newData);
+          setErrorMessage(validation.isValid ? "" : validation.message);
         }
       }
 
@@ -150,88 +131,10 @@ export default function TicketCategoryModal({
     }
   };
 
-  const validateForm = () => {
-    if (!formData.name || !formData.quota || !formData.price || !formData.date_start || !formData.date_end) {
-      return { isValid: false, message: "Harap isi semua field yang wajib diisi!" };
-    }
-
-    const dateStart = new Date(formData.date_start);
-    const dateEnd = new Date(formData.date_end);
-
-    dateStart.setHours(0, 0, 0, 0);
-    dateEnd.setHours(0, 0, 0, 0);
-
-    if (dateStart > dateEnd) {
-      return {
-        isValid: false,
-        message: "Tanggal mulai tidak boleh lebih besar dari tanggal selesai!"
-      };
-    }
-
-    if (dateStart.getTime() === dateEnd.getTime()) {
-      const [startHour, startMinute] = formData.time_start.split(':').map(Number);
-      const [endHour, endMinute] = formData.time_end.split(':').map(Number);
-
-      const startTotalMinutes = startHour * 60 + startMinute;
-      const endTotalMinutes = endHour * 60 + endMinute;
-
-      if (startTotalMinutes > endTotalMinutes) {
-        return {
-          isValid: false,
-          message: "Jam mulai tidak boleh lebih besar dari jam selesai pada tanggal yang sama!"
-        };
-      }
-
-      if (startTotalMinutes === endTotalMinutes) {
-        return {
-          isValid: false,
-          message: "Jam mulai dan jam selesai tidak boleh sama!"
-        };
-      }
-    }
-
-    const startDateTime = new Date(`${formData.date_start}T${formData.time_start}`);
-    const endDateTime = new Date(`${formData.date_end}T${formData.time_end}`);
-
-    if (endDateTime <= startDateTime) {
-      return { isValid: false, message: "Tanggal/waktu selesai harus setelah tanggal/waktu mulai!" };
-    }
-
-    if (eventDates?.start && eventDates?.end) {
-      const eventStart = new Date(eventDates.start);
-      const eventEnd = new Date(eventDates.end);
-
-      eventStart.setHours(0, 0, 0, 0);
-      eventEnd.setHours(23, 59, 59, 999);
-
-      const ticketStart = new Date(formData.date_start);
-      const ticketEnd = new Date(formData.date_end);
-
-      ticketStart.setHours(0, 0, 0, 0);
-      ticketEnd.setHours(23, 59, 59, 999);
-
-      if (ticketStart < eventStart) {
-        return {
-          isValid: false,
-          message: `Tanggal mulai tiket tidak boleh sebelum tanggal event (${new Date(eventDates.start).toLocaleDateString('id-ID')})`
-        };
-      }
-
-      if (ticketEnd > eventEnd) {
-        return {
-          isValid: false,
-          message: `Tanggal selesai tiket tidak boleh setelah tanggal event (${new Date(eventDates.end).toLocaleDateString('id-ID')})`
-        };
-      }
-    }
-
-    return { isValid: true };
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const validation = validateForm();
+    const validation = validateTicketSchedule(formData, eventDates);
     if (!validation.isValid) {
       setErrorMessage(validation.message);
       showNotification(validation.message, "Validasi Gagal", "warning");
@@ -302,7 +205,7 @@ export default function TicketCategoryModal({
               >
                 Tanggal tiket harus dalam rentang event:{" "}
                 <span className="font-medium">
-                  {new Date(eventDates.start).toLocaleDateString('id-ID')} - {new Date(eventDates.end).toLocaleDateString('id-ID')}
+                  {formatNumericDate(eventDates.start)} - {formatNumericDate(eventDates.end)}
                 </span>
               </Motion.p>
             )}
@@ -497,7 +400,7 @@ export default function TicketCategoryModal({
                   <p className="text-sm text-brand-800">
                     <strong>Info:</strong> Tanggal tiket harus dalam rentang tanggal event:{" "}
                     <span className="font-medium">
-                      {new Date(eventDates.start).toLocaleDateString('id-ID')} hingga {new Date(eventDates.end).toLocaleDateString('id-ID')}
+                      {formatNumericDate(eventDates.start)} hingga {formatNumericDate(eventDates.end)}
                     </span>
                   </p>
                 </div>

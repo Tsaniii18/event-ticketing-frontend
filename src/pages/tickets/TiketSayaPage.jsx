@@ -7,9 +7,21 @@ import useNotification from "../../hooks/useNotification";
 import { ticketAPI } from "../../services";
 import { Search, X, Pencil, Check, ChevronDown, Tag, MapPin, Clock, XCircle, Ticket, QrCode, RefreshCw, CheckCircle2, Sparkles, CalendarDays, Timer, ArrowUpDown, Info } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
-import { TICKET_STATUS_CONFIG as STATUS_CONFIG } from "../../utils";
+import {
+  countByStatus,
+  filterUserTickets,
+  filterVisibleCountItems,
+  formatOptionalShortDateRange as formatDateRange,
+  formatOptionalTimeRange as formatTimeRange,
+  formatShortDateTime as formatDateTime,
+  groupUserTicketsByEvent,
+  normalizeTicketResponse,
+  TICKET_STATUS_CONFIG as STATUS_CONFIG,
+  transformUserTickets,
+  updateItemByKey,
+} from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -43,14 +55,7 @@ export default function TiketSaya() {
       setError(null);
       const response = await ticketAPI.getTickets();
 
-      let ticketData = response.data;
-      if (ticketData && ticketData.data && Array.isArray(ticketData.data)) {
-        ticketData = ticketData.data;
-      } else if (!Array.isArray(ticketData)) {
-        ticketData = [];
-      }
-
-      setTickets(ticketData);
+      setTickets(normalizeTicketResponse(response.data));
     } catch (err) {
       console.error("Error fetching tickets:", err);
       setError("Gagal memuat tiket");
@@ -64,201 +69,29 @@ export default function TiketSaya() {
     fetchTickets();
   }, [fetchTickets]);
 
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "-";
-      return date.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      });
-    } catch (error) {
-      console.error("Error formatting date:", dateString, error);
-      return "-";
-    }
-  }, []);
+  const processedTickets = useMemo(
+    () => transformUserTickets(tickets),
+    [tickets],
+  );
 
-  const formatTime = useCallback((dateString) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "";
-      return date.toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.error("Error formatting time:", dateString, error);
-      return "";
-    }
-  }, []);
+  const statusStats = useMemo(
+    () => countByStatus(processedTickets, ["active", "used", "expired"]),
+    [processedTickets],
+  );
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "-";
-    return `${formatDate(dateString)} ${formatTime(dateString)}`;
-  };
+  const filteredTickets = useMemo(
+    () =>
+      filterUserTickets(processedTickets, {
+        searchTerm,
+        status: selectedStatus,
+      }),
+    [processedTickets, searchTerm, selectedStatus],
+  );
 
-  const formatDateRange = useCallback((startDate, endDate) => {
-    const start = formatDate(startDate);
-    const end = formatDate(endDate);
-    if (start === end || end === "-") return start;
-    return `${start} - ${end}`;
-  }, [formatDate]);
-
-  const formatTimeRange = useCallback((startDate, endDate) => {
-    const start = formatTime(startDate);
-    const end = formatTime(endDate);
-    if (!start || !end) return "-";
-    return `${start} - ${end}`;
-  }, [formatTime]);
-
-  const computeStatus = (ticket) => {
-    if (ticket.status === "pending" || ticket.status === "cancelled") {
-      return null;
-    }
-
-    if (ticket.status === "used") {
-      return "used";
-    }
-
-    const categoryEnd = ticket.ticket_category?.date_time_end;
-    if (categoryEnd && new Date(categoryEnd) < new Date()) {
-      return "expired";
-    }
-
-    return "active";
-  };
-
-  const processedTickets = useMemo(() => {
-    return tickets
-      .map(ticket => {
-        const status = computeStatus(ticket);
-        if (!status) return null;
-
-        const startDate = ticket.ticket_category?.date_time_start || ticket.event?.date_start;
-        const endDate = ticket.ticket_category?.date_time_end || ticket.event?.date_end;
-
-        return {
-          ...ticket,
-          ticketId: ticket.ticket_id,
-          code: ticket.code,
-          tag: ticket.tag || "",
-          status: status,
-          usedAt: ticket.used_at,
-          createdAt: ticket.created_at,
-
-          eventName: ticket.event?.name || ticket.event?.event_name || "Event",
-          eventVenue: ticket.event?.venue || ticket.event?.Venue || ticket.event?.location || "-",
-          eventLocation: ticket.event?.location || "-",
-          eventCity: ticket.event?.city || "-",
-          eventDateStart: ticket.event?.date_start,
-          eventDateEnd: ticket.event?.date_end,
-          eventImage: ticket.event?.image,
-          eventId: ticket.event?.event_id,
-
-          categoryName: ticket.ticket_category?.name || "Tiket",
-          categoryPrice: ticket.ticket_category?.price || 0,
-          categoryDescription: ticket.ticket_category?.description || "",
-          ticketDateStart: startDate,
-          ticketDateEnd: endDate,
-
-          formattedEventDate: formatDate(ticket.event?.date_start),
-          formattedEventDateEnd: formatDate(ticket.event?.date_end),
-          formattedTicketDate: formatDate(startDate),
-          formattedTicketDateEnd: formatDate(endDate),
-          timeRange: formatTimeRange(startDate, endDate),
-
-          displayDate: formatDate(startDate),
-          displayDateRange: formatDateRange(startDate, endDate),
-          displayTimeRange: formatTimeRange(startDate, endDate)
-        };
-      })
-      .filter(ticket => ticket !== null);
-  }, [formatDate, formatDateRange, formatTimeRange, tickets]);
-
-  const statusStats = useMemo(() => {
-    const stats = {
-      all: processedTickets.length,
-      active: 0,
-      used: 0,
-      expired: 0
-    };
-
-    processedTickets.forEach(ticket => {
-      if (stats[ticket.status] !== undefined) {
-        stats[ticket.status]++;
-      }
-    });
-
-    return stats;
-  }, [processedTickets]);
-
-  const filteredTickets = useMemo(() => {
-    let filtered = [...processedTickets];
-
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(ticket => ticket.status === selectedStatus);
-    }
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(ticket =>
-        ticket.eventName?.toLowerCase().includes(term) ||
-        ticket.categoryName?.toLowerCase().includes(term) ||
-        ticket.tag?.toLowerCase().includes(term) ||
-        ticket.code?.toLowerCase().includes(term)
-      );
-    }
-
-    return filtered;
-  }, [processedTickets, selectedStatus, searchTerm]);
-
-  const groupedByEvent = useMemo(() => {
-    const groups = {};
-
-    filteredTickets.forEach(ticket => {
-      const eventKey = ticket.eventId || ticket.eventName || "unknown";
-
-      if (!groups[eventKey]) {
-        groups[eventKey] = {
-          eventId: ticket.eventId,
-          eventName: ticket.eventName,
-          eventVenue: ticket.eventVenue,
-          eventLocation: ticket.eventLocation,
-          eventCity: ticket.eventCity,
-          eventDateStart: ticket.eventDateStart,
-          eventDateEnd: ticket.eventDateEnd,
-          eventImage: ticket.eventImage,
-          formattedEventDate: ticket.formattedEventDate,
-          formattedEventDateEnd: ticket.formattedEventDateEnd,
-          displayDateRange: ticket.displayDateRange,
-          tickets: []
-        };
-      }
-
-      groups[eventKey].tickets.push(ticket);
-    });
-
-    let sortedGroups = Object.values(groups);
-    sortedGroups.sort((a, b) => {
-      let compareResult = 0;
-      switch (sortBy) {
-        case "date":
-          compareResult = new Date(a.eventDateStart || 0) - new Date(b.eventDateStart || 0);
-          break;
-        case "name":
-          compareResult = (a.eventName || "").localeCompare(b.eventName || "");
-          break;
-        default:
-          compareResult = new Date(a.eventDateStart || 0) - new Date(b.eventDateStart || 0);
-      }
-      return sortOrder === "desc" ? -compareResult : compareResult;
-    });
-
-    return sortedGroups;
-  }, [filteredTickets, sortBy, sortOrder]);
+  const groupedByEvent = useMemo(
+    () => groupUserTicketsByEvent(filteredTickets, { sortBy, sortOrder }),
+    [filteredTickets, sortBy, sortOrder],
+  );
 
   const toggleEventDropdown = (eventName) => {
     setExpandedEvents(prev => ({
@@ -288,12 +121,13 @@ export default function TiketSaya() {
       await ticketAPI.updateTagTicket(ticketId, { tag: newTag });
       showNotification("Catatan tiket berhasil diperbarui", "Sukses", "success");
 
-      setTickets(prevTickets =>
-        prevTickets.map(ticket =>
-          ticket.ticket_id === ticketId
-            ? { ...ticket, tag: newTag }
-            : ticket
-        )
+      setTickets((currentTickets) =>
+        updateItemByKey(
+          currentTickets,
+          ticketId,
+          { tag: newTag },
+          "ticket_id",
+        ),
       );
     } catch (err) {
       console.error("Error updating ticket tag:", err);
@@ -467,12 +301,12 @@ export default function TiketSaya() {
               className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 mb-6"
             >
               <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                {[
+                {filterVisibleCountItems([
                   { key: "all", label: "Semua", count: statusStats.all },
                   { key: "active", label: "Aktif", count: statusStats.active },
                   { key: "used", label: "Digunakan", count: statusStats.used },
                   { key: "expired", label: "Kadaluarsa", count: statusStats.expired }
-                ].filter(tab => tab.key === "all" || tab.count > 0).map((tab) => (
+                ]).map((tab) => (
                   <Button unstyled
                     key={tab.key}
                     onClick={() => setSelectedStatus(tab.key)}

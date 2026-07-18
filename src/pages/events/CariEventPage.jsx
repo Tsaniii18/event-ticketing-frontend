@@ -4,22 +4,28 @@ import Navbar from "../../components/layout/Navbar";
 import { eventAPI } from "../../services";
 import useSessionUser from "../../hooks/useSessionUser";
 import {
-  CATEGORIES,
+  EVENT_PARENT_CATEGORIES,
   EVENTS_PER_PAGE as ITEMS_PER_PAGE,
+  filterEventSearchResults,
   formatCompactNumber as formatNumber,
   formatRupiah,
   formatShortDateRange as formatDate,
   getCategoryColor,
+  getPaginationItems,
   getParentCategory,
+  paginateItems,
   getEventStatusLabel as getStatusLabel,
   getEventTimeLabel as getTimeLabel,
   getLowestTicketPrice as getLowestPrice,
+  getLikedEventIds,
+  toggleSetValue,
+  updateEventLikeCount,
   YOGYAKARTA_DISTRICTS as DISTRICTS,
 } from "../../utils";
 import { Search, Filter, Calendar, MapPin, X, RefreshCw, Heart, ChevronLeft, ChevronRight, ShoppingBag, Clock, ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -62,10 +68,7 @@ export default function CariEvent() {
       if (!isLoggedIn) return;
       try {
         const response = await eventAPI.getMyLikedEvents();
-        const likedEventIds = new Set(
-          (response.data?.liked_event || []).map(e => e.event_id)
-        );
-        setLikedEvents(likedEventIds);
+        setLikedEvents(getLikedEventIds(response.data?.liked_event));
       } catch (err) {
         console.error("Error fetching liked events:", err);
       }
@@ -99,62 +102,13 @@ export default function CariEvent() {
   }, [searchQuery, filters.keyword]);
 
   useEffect(() => {
-    let result = [...events];
-
-    if (filters.keyword) {
-      result = result.filter(event =>
-        event.name.toLowerCase().includes(filters.keyword.toLowerCase())
-      );
-    }
-
-    if (filters.date) {
-      const selectedDate = new Date(filters.date);
-      result = result.filter(event => {
-        const eventStartDate = new Date(event.date_start);
-        const eventEndDate = new Date(event.date_end);
-        return selectedDate >= eventStartDate && selectedDate <= eventEndDate;
-      });
-    }
-
-    if (filters.category) {
-      result = result.filter(event => {
-        const eventParent = getParentCategory(event.category);
-        return eventParent === filters.category;
-      });
-    }
-
-    if (filters.district) {
-      result = result.filter(event => event.district === filters.district);
-    }
-
-    if (statusFilter === "approved") {
-      result = result.filter(event => event.status === "approved");
-    } else if (statusFilter === "active") {
-      result = result.filter(event => event.status === "active");
-    } else if (statusFilter === "ended") {
-      result = result.filter(event => event.status === "ended");
-    }
-
-    if (sortBy === "popularitas") {
-      result = result.sort((a, b) => (b.total_likes || 0) - (a.total_likes || 0));
-    } else if (sortBy === "terlaris") {
-      result = result.sort((a, b) => (b.total_tickets_sold || 0) - (a.total_tickets_sold || 0));
-    } else if (sortBy === "terdekat") {
-      const now = new Date();
-
-      result = result.filter(event => {
-        const eventEndDate = new Date(event.date_end);
-        return eventEndDate >= now;
-      });
-
-      result = result.sort((a, b) => {
-        const dateA = new Date(a.date_start);
-        const dateB = new Date(b.date_start);
-        return dateA - dateB;
-      });
-    }
-
-    setFilteredEvents(result);
+    setFilteredEvents(
+      filterEventSearchResults(events, {
+        ...filters,
+        sortBy,
+        status: statusFilter,
+      }),
+    );
     setCurrentPage(1);
   }, [filters, events, sortBy, statusFilter]);
 
@@ -162,34 +116,18 @@ export default function CariEvent() {
     e.stopPropagation();
     if (!isLoggedIn) { navigate(ROUTES.LOGIN); return; }
 
-    const userData = sessionStorage.getItem("user");
-    if (!userData) return;
-
-    const user = JSON.parse(userData);
-    if (user.role !== "user") return;
+    if (userRole !== "user") return;
 
     const isCurrentlyLiked = likedEvents.has(eventId);
 
     try {
       await eventAPI.likeEvent(eventId);
-      setLikedEvents(prev => {
-        const newSet = new Set(prev);
-        if (isCurrentlyLiked) newSet.delete(eventId);
-        else newSet.add(eventId);
-        return newSet;
-      });
-
-      setEvents(prev => prev.map(event => {
-        if (event.event_id === eventId) {
-          return {
-            ...event,
-            total_likes: isCurrentlyLiked
-              ? Math.max(0, (event.total_likes || 1) - 1)
-              : (event.total_likes || 0) + 1
-          };
-        }
-        return event;
-      }));
+      setLikedEvents((currentEvents) =>
+        toggleSetValue(currentEvents, eventId),
+      );
+      setEvents((currentEvents) =>
+        updateEventLikeCount(currentEvents, eventId, isCurrentlyLiked),
+      );
     } catch (err) {
       console.error("Error liking event:", err);
     }
@@ -232,40 +170,16 @@ export default function CariEvent() {
 
   const hasActiveFilters = filters.keyword || filters.date || filters.category || filters.district || statusFilter;
 
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
+  const {
+    endItem,
+    items: paginatedEvents,
+    startItem,
+    totalPages,
+  } = paginateItems(filteredEvents, currentPage, ITEMS_PER_PAGE);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-    return pages;
   };
 
   const isEndedFilterDisabled = sortBy === "terdekat";
@@ -472,7 +386,7 @@ export default function CariEvent() {
                           className="ui-select px-3 py-2 text-sm sm:px-4 sm:py-2.5"
                         >
                           <option value="">Semua Kategori</option>
-                          {Object.keys(CATEGORIES).map((category) => (
+                          {EVENT_PARENT_CATEGORIES.map((category) => (
                             <option key={category} value={category}>
                               {category}
                             </option>
@@ -561,7 +475,7 @@ export default function CariEvent() {
                 {totalPages > 1 && (
                   <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 sm:pt-6 border-t border-gray-200">
                     <div className="text-xs sm:text-sm text-gray-500 order-2 sm:order-1">
-                      {startIndex + 1}-{Math.min(endIndex, filteredEvents.length)} dari {filteredEvents.length}
+                      {startItem}-{endItem} dari {filteredEvents.length}
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
@@ -579,7 +493,7 @@ export default function CariEvent() {
                       </Button>
 
                       <div className="flex items-center gap-1">
-                        {getPageNumbers().map((page, idx) => (
+                        {getPaginationItems(currentPage, totalPages).map((page, idx) => (
                           page === '...' ? (
                             <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-gray-400 text-sm">...</span>
                           ) : (

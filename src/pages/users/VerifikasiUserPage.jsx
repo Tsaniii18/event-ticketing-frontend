@@ -7,11 +7,14 @@ import useNotification from "../../hooks/useNotification";
 import { Search, Filter, X, Eye, RefreshCw, Users, UserCheck, UserSearch } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
+  countByStatus,
+  filterVerificationUsers,
+  formatNumericDate,
   USER_VERIFICATION_STATUS_CONFIG,
   USER_VERIFICATION_STATUS_LABELS,
 } from "../../utils";
 import Button from "../../components/common/Button";
-import { routeTo } from "../../utils/routeConstants";
+import { routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -37,9 +40,9 @@ export default function VerifikasiUserPage() {
       startLoading();
       const response = await userAPI.getAllOrganizers();
 
-      const pendingUsers = response.data.filter(
-        (u) => u.register_status === "pending"
-      );
+      const pendingUsers = filterVerificationUsers(response.data, {
+        status: "pending",
+      });
       setUsers(pendingUsers);
       setAllUsers(response.data);
     } catch (error) {
@@ -50,32 +53,21 @@ export default function VerifikasiUserPage() {
     }
   }, [showNotification, startLoading, stopLoading]);
 
-  const applyFilters = useCallback(() => {
-    const userList = activeTab === "pending" ? users : allUsers;
-    let filtered = [...userList];
-
-    if (searchTerm) {
-      filtered = filtered.filter(user =>
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.username?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (activeTab === "all" && statusFilter !== "all") {
-      filtered = filtered.filter(user => user.register_status === statusFilter);
-    }
-
-    setFilteredUsers(filtered);
-  }, [activeTab, allUsers, searchTerm, statusFilter, users]);
-
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    setFilteredUsers(
+      filterVerificationUsers(
+        activeTab === "pending" ? users : allUsers,
+        {
+          searchTerm,
+          status: activeTab === "all" ? statusFilter : "all",
+        },
+      ),
+    );
+  }, [activeTab, allUsers, searchTerm, statusFilter, users]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -101,14 +93,14 @@ export default function VerifikasiUserPage() {
     );
   };
 
-  const getStatusText = (status) => {
-    return USER_VERIFICATION_STATUS_LABELS[status] || status;
-  };
-
   const hasActiveFilters = searchTerm || (activeTab === "all" && statusFilter !== "all");
 
-  const pendingUsers = users.filter(user => user.register_status === "pending");
-  const approvedUsers = allUsers.filter(user => user.register_status === "approved");
+  const pendingUsers = users;
+  const userStatusCounts = countByStatus(
+    allUsers,
+    ["approved"],
+    "register_status",
+  );
 
   return (
     <div>
@@ -212,7 +204,7 @@ export default function VerifikasiUserPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-success-100">Terverifikasi</p>
-                    <p className="text-3xl font-bold mt-1">{approvedUsers.length}</p>
+                    <p className="text-3xl font-bold mt-1">{userStatusCounts.approved}</p>
                   </div>
                   <Motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -339,7 +331,7 @@ export default function VerifikasiUserPage() {
                         <p className="text-sm text-brand-800">
                           Filter aktif:
                           {searchTerm && ` Pencarian: "${searchTerm}"`}
-                          {activeTab === "all" && statusFilter !== "all" && ` Status: ${getStatusText(statusFilter)}`}
+                          {activeTab === "all" && statusFilter !== "all" && ` Status: ${USER_VERIFICATION_STATUS_LABELS[statusFilter] || statusFilter}`}
                         </p>
                       </Motion.div>
                     )}
@@ -419,7 +411,7 @@ export default function VerifikasiUserPage() {
                           </div>
                           <div>
                             <p className="font-medium text-gray-700">Terdaftar</p>
-                            <p>{new Date(user.created_at).toLocaleDateString('id-ID')}</p>
+                            <p>{formatNumericDate(user.created_at)}</p>
                           </div>
                         </div>
                       </div>

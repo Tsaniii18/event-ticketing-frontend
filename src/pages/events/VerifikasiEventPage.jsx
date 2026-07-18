@@ -7,9 +7,11 @@ import useNotification from "../../hooks/useNotification";
 import { Search, Filter, Calendar, X, Eye, CheckCircle, XCircle, RefreshCw, FileText, User, MapPin, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/common/Button";
-import { routeTo } from "../../utils/routeConstants";
+import { routeTo } from "../../utils/constants/routeConstants";
+import { filterVerificationEvents, formatNumericDate } from "../../utils";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
+import { DescriptionWithNewlines } from "../../components/events/EventFormFields";
 
 export default function VerifikasiEventPage() {
   const navigate = useNavigate();
@@ -32,7 +34,9 @@ export default function VerifikasiEventPage() {
     try {
       startLoading();
       const response = await eventAPI.getPendingEvents();
-      const pendingEvents = response.data.filter(event => event.status === "pending");
+      const pendingEvents = filterVerificationEvents(response.data, {
+        status: "pending",
+      });
       setEvents(pendingEvents);
     } catch (error) {
       console.error("Error fetching pending events:", error);
@@ -42,32 +46,18 @@ export default function VerifikasiEventPage() {
     }
   }, [showNotification, startLoading, stopLoading]);
 
-  const applyFilters = useCallback(() => {
-    let filtered = [...events];
-
-    if (searchTerm) {
-      filtered = filtered.filter(event =>
-        event.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (dateFilter) {
-      filtered = filtered.filter(event => {
-        const eventDate = new Date(event.date_start).toISOString().split('T')[0];
-        return eventDate === dateFilter;
-      });
-    }
-
-    setFilteredEvents(filtered);
-  }, [dateFilter, events, searchTerm]);
-
   useEffect(() => {
     fetchPendingEvents();
   }, [fetchPendingEvents]);
 
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    setFilteredEvents(
+      filterVerificationEvents(events, {
+        date: dateFilter,
+        searchTerm,
+      }),
+    );
+  }, [dateFilter, events, searchTerm]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -109,17 +99,6 @@ export default function VerifikasiEventPage() {
   const handleRefresh = () => {
     fetchPendingEvents();
     showNotification("Data event diperbarui", "Sukses", "success");
-  };
-
-  const renderTextWithNewlines = (text) => {
-    if (!text) return "-";
-
-    return text.split('\n').map((line, index) => (
-      <span key={index}>
-        {line}
-        {index < text.split('\n').length - 1 && <br />}
-      </span>
-    ));
   };
 
   const hasActiveFilters = searchTerm || dateFilter;
@@ -253,7 +232,7 @@ export default function VerifikasiEventPage() {
                         <p className="text-sm text-brand-800">
                           Filter aktif:
                           {searchTerm && ` Nama: "${searchTerm}"`}
-                          {dateFilter && ` Tanggal: ${new Date(dateFilter).toLocaleDateString("id-ID")}`}
+                          {dateFilter && ` Tanggal: ${formatNumericDate(dateFilter)}`}
                         </p>
                       </Motion.div>
                     )}
@@ -331,8 +310,8 @@ export default function VerifikasiEventPage() {
                           <div>
                             <p className="font-medium text-gray-700">Tanggal</p>
                             <p>
-                              {new Date(event.date_start).toLocaleDateString('id-ID')} - {" "}
-                              {new Date(event.date_end).toLocaleDateString('id-ID')}
+                              {formatNumericDate(event.date_start)} - {" "}
+                              {formatNumericDate(event.date_end)}
                             </p>
                           </div>
                         </div>
@@ -494,8 +473,8 @@ export default function VerifikasiEventPage() {
                           Tanggal Event
                         </label>
                         <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
-                          {new Date(selectedEvent.date_start).toLocaleDateString('id-ID')} - {" "}
-                          {new Date(selectedEvent.date_end).toLocaleDateString('id-ID')}
+                          {formatNumericDate(selectedEvent.date_start)} - {" "}
+                          {formatNumericDate(selectedEvent.date_end)}
                         </div>
                       </Motion.div>
 
@@ -525,7 +504,11 @@ export default function VerifikasiEventPage() {
                           Deskripsi Event
                         </label>
                         <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 whitespace-pre-wrap max-h-32 overflow-y-auto">
-                          {renderTextWithNewlines(selectedEvent.description)}
+                          <DescriptionWithNewlines
+                            className=""
+                            fallback="-"
+                            text={selectedEvent.description}
+                          />
                         </div>
                       </Motion.div>
                     </div>

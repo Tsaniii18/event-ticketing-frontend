@@ -14,17 +14,36 @@ import useNotification from "../../hooks/useNotification";
 import useImagePreview from "../../hooks/useImagePreview";
 import { motion as Motion } from "framer-motion";
 import {
-  CATEGORIES,
+  adjustTicketToEventRange,
+  buildEventFormData,
+  canEditEvent,
+  EVENT_PARENT_CATEGORIES,
+  createObjectPreviewUrl,
+  decodeTokenPayload,
   EDIT_EVENT_VENUES as YOGYAKARTA_VENUES,
   EDIT_EVENT_STATUS_STYLES,
   EXTENDED_DISTRICTS as DISTRICTS,
+  formatCurrency,
+  formatDateInputValue,
   formatDateForDisplay,
-  MAX_IMAGE_SIZE,
+  getFileDisplayName,
+  getChildEventCategories,
+  getEventAccessFlags,
+  getMinimumEventDate,
+  hasItemByKey,
+  getTicketsOutsideEventRange,
+  isCustomVenueName,
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
+  removeItemByKey,
+  readStoredToken,
+  replaceItemByKey,
+  validateImageFile,
+  validateTicketDateRange,
+  transformEditableTicketCategories,
 } from "../../utils";
 import Button from "../../components/common/Button";
-import { ROUTES, routeTo } from "../../utils/routeConstants";
+import { ROUTES, routeTo } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -80,10 +99,14 @@ export default function EditEventPage() {
         const response = await eventAPI.getEvent(eventId);
         const eventData = response.data;
 
-        const token = sessionStorage.getItem('token');
+        const token = readStoredToken();
         if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const isEventOwner = payload.user_id === eventData.owner_id;
+          const payload = decodeTokenPayload(token);
+          if (!payload) throw new Error("Invalid session token");
+          const { isOwner: isEventOwner } = getEventAccessFlags(
+            payload,
+            eventData.owner_id,
+          );
 
           if (!isEventOwner) {
             showNotification("Anda tidak memiliki akses untuk mengedit event ini", "Error", "error");
@@ -91,7 +114,7 @@ export default function EditEventPage() {
             return;
           }
 
-          if (eventData.status !== 'pending' && eventData.status !== 'rejected') {
+          if (!canEditEvent(eventData.status)) {
             showNotification("Event hanya dapat diedit ketika status pending atau rejected", "Error", "error");
             navigate(routeTo.eventDetail(eventId));
             return;
@@ -100,22 +123,16 @@ export default function EditEventPage() {
 
         setEvent(eventData);
 
-        if (eventData.created_at) {
-          const createdAt = new Date(eventData.created_at);
-          const minStartDate = new Date(createdAt);
-          minStartDate.setDate(minStartDate.getDate() + 7);
-          setMinDate(minStartDate.toISOString().split('T')[0]);
-        } else {
-          const fallbackMinDate = new Date();
-          fallbackMinDate.setDate(fallbackMinDate.getDate() + 7);
-          setMinDate(fallbackMinDate.toISOString().split('T')[0]);
-        }
+        setMinDate(getMinimumEventDate(eventData.created_at));
 
-        const isVenueCustom = !YOGYAKARTA_VENUES.some(venue => venue.name === eventData.venue);
+        const isVenueCustom = isCustomVenueName(
+          YOGYAKARTA_VENUES,
+          eventData.venue,
+        );
         setIsCustomVenue(isVenueCustom);
 
-        const dateStartFormatted = eventData.date_start ? new Date(eventData.date_start).toISOString().split('T')[0] : "";
-        const dateEndFormatted = eventData.date_end ? new Date(eventData.date_end).toISOString().split('T')[0] : "";
+        const dateStartFormatted = formatDateInputValue(eventData.date_start);
+        const dateEndFormatted = formatDateInputValue(eventData.date_end);
 
         setFormData({
           name: eventData.name,
@@ -138,19 +155,9 @@ export default function EditEventPage() {
         setCurrentPoster(eventData.image || "");
         setCurrentBanner(eventData.flyer || "");
 
-        const formattedTickets = eventData.ticket_categories?.map((ticket, index) => ({
-          id: ticket.ticket_category_id || `existing-${index}`,
-          name: ticket.name,
-          quota: ticket.quota,
-          price: ticket.price,
-          description: ticket.description || "",
-          date_start: ticket.date_time_start ? new Date(ticket.date_time_start).toISOString().split('T')[0] : "",
-          date_end: ticket.date_time_end ? new Date(ticket.date_time_end).toISOString().split('T')[0] : "",
-          time_start: ticket.date_time_start ? new Date(ticket.date_time_start).toTimeString().slice(0, 5) : "00:00",
-          time_end: ticket.date_time_end ? new Date(ticket.date_time_end).toTimeString().slice(0, 5) : "23:59",
-        })) || [];
-
-        setTicketList(formattedTickets);
+        setTicketList(
+          transformEditableTicketCategories(eventData.ticket_categories),
+        );
 
       } catch (error) {
         console.error("Error fetching event data:", error);
@@ -165,100 +172,6 @@ export default function EditEventPage() {
       fetchEventData();
     }
   }, [eventId, navigate, showNotification, startLoading, stopLoading]);
-
-  const validateTicketDates = (ticketStart, ticketEnd) => {
-    if (!formData.date_start || !formData.date_end) {
-      return { isValid: false, message: "Harap tentukan tanggal event terlebih dahulu" };
-    }
-
-    const eventStart = new Date(formData.date_start);
-    const eventEnd = new Date(formData.date_end);
-    const ticketStartDate = new Date(ticketStart);
-    const ticketEndDate = new Date(ticketEnd);
-
-    eventStart.setHours(0, 0, 0, 0);
-    eventEnd.setHours(23, 59, 59, 999);
-    ticketStartDate.setHours(0, 0, 0, 0);
-    ticketEndDate.setHours(23, 59, 59, 999);
-
-    if (ticketStartDate < eventStart) {
-      return {
-        isValid: false,
-        message: `Tanggal mulai tiket tidak boleh sebelum tanggal event (${formatDateForDisplay(formData.date_start)})`
-      };
-    }
-
-    if (ticketEndDate > eventEnd) {
-      return {
-        isValid: false,
-        message: `Tanggal selesai tiket tidak boleh setelah tanggal event (${formatDateForDisplay(formData.date_end)})`
-      };
-    }
-
-    return { isValid: true };
-  };
-
-  const adjustTicketDateToNewEventDate = (ticketDate, isStartDate) => {
-    if (!previousEventDates.date_start || !previousEventDates.date_end) {
-      return isStartDate ? formData.date_start : formData.date_end;
-    }
-
-    const oldEventStart = new Date(previousEventDates.date_start);
-    const oldEventEnd = new Date(previousEventDates.date_end);
-    const newEventStart = new Date(formData.date_start);
-    const newEventEnd = new Date(formData.date_end);
-    const currentTicketDate = new Date(ticketDate);
-
-    oldEventStart.setHours(0, 0, 0, 0);
-    oldEventEnd.setHours(0, 0, 0, 0);
-    newEventStart.setHours(0, 0, 0, 0);
-    newEventEnd.setHours(0, 0, 0, 0);
-    currentTicketDate.setHours(0, 0, 0, 0);
-
-    const oldEventDuration = oldEventEnd.getTime() - oldEventStart.getTime();
-    const newEventDuration = newEventEnd.getTime() - newEventStart.getTime();
-
-    let relativePosition = 0;
-    if (oldEventDuration > 0) {
-      relativePosition = (currentTicketDate.getTime() - oldEventStart.getTime()) / oldEventDuration;
-    }
-
-    relativePosition = Math.max(0, Math.min(1, relativePosition));
-
-    const newTicketDateTime = newEventStart.getTime() + (relativePosition * newEventDuration);
-    const newTicketDate = new Date(newTicketDateTime);
-
-    if (newTicketDate < newEventStart) {
-      return formData.date_start;
-    }
-    if (newTicketDate > newEventEnd) {
-      return formData.date_end;
-    }
-
-    return newTicketDate.toISOString().split('T')[0];
-  };
-
-  const getAdjustedTicketForEditing = (ticket) => {
-    const eventDatesChanged =
-      formData.date_start !== previousEventDates.date_start ||
-      formData.date_end !== previousEventDates.date_end;
-
-    if (!eventDatesChanged) {
-      return ticket;
-    }
-
-    const adjustedTicket = {
-      ...ticket,
-      date_start: adjustTicketDateToNewEventDate(ticket.date_start, true),
-      date_end: adjustTicketDateToNewEventDate(ticket.date_end, false)
-    };
-
-    if (adjustedTicket.date_start > adjustedTicket.date_end) {
-      adjustedTicket.date_end = adjustedTicket.date_start;
-    }
-
-    return adjustedTicket;
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -319,7 +232,9 @@ export default function EditEventPage() {
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > MAX_IMAGE_SIZE) {
+      const validation = validateImageFile(file, { allowedTypes: null });
+
+      if (validation.reason === "size") {
         showNotification(
           `Ukuran file ${type} terlalu besar! Maksimal 5MB.`,
           "Peringatan",
@@ -329,7 +244,7 @@ export default function EditEventPage() {
         return;
       }
 
-      if (!file.type.startsWith('image/')) {
+      if (validation.reason === "type") {
         showNotification(
           `File ${type} harus berupa gambar!`,
           "Peringatan",
@@ -351,9 +266,13 @@ export default function EditEventPage() {
   const handlePreviewImage = (type) => {
     let imageUrl;
     if (type === 'poster') {
-      imageUrl = posterFile ? URL.createObjectURL(posterFile) : currentPoster;
+      imageUrl = posterFile
+        ? createObjectPreviewUrl(posterFile)
+        : currentPoster;
     } else {
-      imageUrl = bannerFile ? URL.createObjectURL(bannerFile) : currentBanner;
+      imageUrl = bannerFile
+        ? createObjectPreviewUrl(bannerFile)
+        : currentBanner;
     }
 
     if (imageUrl) {
@@ -365,7 +284,12 @@ export default function EditEventPage() {
   };
 
   const handleAddTicket = (ticket) => {
-    const validation = validateTicketDates(ticket.date_start, ticket.date_end);
+    const validation = validateTicketDateRange({
+      eventEnd: formData.date_end,
+      eventStart: formData.date_start,
+      ticketEnd: ticket.date_end,
+      ticketStart: ticket.date_start,
+    });
     if (!validation.isValid) {
       showNotification(validation.message, "Validasi Gagal", "warning");
       return;
@@ -376,17 +300,18 @@ export default function EditEventPage() {
   };
 
   const handleUpdateTicket = (updatedTicket) => {
-    const validation = validateTicketDates(updatedTicket.date_start, updatedTicket.date_end);
+    const validation = validateTicketDateRange({
+      eventEnd: formData.date_end,
+      eventStart: formData.date_start,
+      ticketEnd: updatedTicket.date_end,
+      ticketStart: updatedTicket.date_start,
+    });
     if (!validation.isValid) {
       showNotification(validation.message, "Validasi Gagal", "warning");
       return;
     }
 
-    setTicketList((prev) =>
-      prev.map((ticket) =>
-        ticket.id === updatedTicket.id ? updatedTicket : ticket
-      )
-    );
+    setTicketList((tickets) => replaceItemByKey(tickets, updatedTicket));
     setEditingTicket(null);
     showNotification("Kategori tiket berhasil diperbarui", "Sukses", "success");
   };
@@ -401,14 +326,18 @@ export default function EditEventPage() {
       return;
     }
 
-    const adjustedTicket = getAdjustedTicketForEditing(ticket);
+    const adjustedTicket = adjustTicketToEventRange(
+      ticket,
+      previousEventDates,
+      formData,
+    );
 
     setEditingTicket(adjustedTicket);
     setIsModalOpen(true);
   };
 
   const removeTicketCategory = (id) => {
-    setTicketList((prev) => prev.filter((ticket) => ticket.id !== id));
+    setTicketList((tickets) => removeItemByKey(tickets, id));
     showNotification("Kategori tiket berhasil dihapus", "Sukses", "success");
   };
 
@@ -451,10 +380,11 @@ export default function EditEventPage() {
       return;
     }
 
-    const invalidTickets = ticketList.filter(ticket => {
-      const validation = validateTicketDates(ticket.date_start, ticket.date_end);
-      return !validation.isValid;
-    });
+    const invalidTickets = getTicketsOutsideEventRange(
+      ticketList,
+      formData.date_start,
+      formData.date_end,
+    );
 
     if (invalidTickets.length > 0) {
       showNotification(
@@ -467,33 +397,12 @@ export default function EditEventPage() {
     }
 
     try {
-      const submitData = new FormData();
-
-      Object.keys(formData).forEach((key) => {
-        if (formData[key]) {
-          if (key === "date_start" || key === "date_end") {
-            const date = new Date(formData[key]);
-            submitData.append(key, date.toISOString());
-          } else {
-            submitData.append(key, formData[key]);
-          }
-        }
+      const submitData = buildEventFormData({
+        bannerFile,
+        formData,
+        posterFile,
+        tickets: ticketList,
       });
-
-      if (posterFile) submitData.append("image", posterFile);
-      if (bannerFile) submitData.append("flyer", bannerFile);
-
-      if (ticketList.length > 0) {
-        const ticketCategories = ticketList.map((ticket) => ({
-          name: ticket.name,
-          price: parseFloat(ticket.price),
-          quota: parseInt(ticket.quota),
-          description: ticket.description,
-          date_time_start: new Date(ticket.date_start + "T" + ticket.time_start + ":00Z").toISOString(),
-          date_time_end: new Date(ticket.date_end + "T" + ticket.time_end + ":00Z").toISOString(),
-        }));
-        submitData.append("ticket_categories", JSON.stringify(ticketCategories));
-      }
 
       const response = await eventAPI.updateEvent(eventId, submitData);
 
@@ -513,34 +422,20 @@ export default function EditEventPage() {
     }
   };
 
-  const getPosterFileName = () => {
-    return posterFile ? posterFile.name : (currentPoster ? "Poster saat ini" : "Pilih file");
+  const childCategories = getChildEventCategories(formData.category);
+
+  const ticketsNeedingAdjustment =
+    formData.date_start && formData.date_end
+      ? getTicketsOutsideEventRange(
+          ticketList,
+          formData.date_start,
+          formData.date_end,
+        )
+      : [];
+  const eventStatusStyle = EDIT_EVENT_STATUS_STYLES[event?.status] || {
+    bg: "bg-gray-100",
+    text: "text-gray-800",
   };
-
-  const getBannerFileName = () => {
-    return bannerFile ? bannerFile.name : (currentBanner ? "Banner saat ini" : "Pilih file");
-  };
-
-  const childCategories = CATEGORIES[formData.category] || [];
-
-  const getStatusBadge = (status) => {
-    const config = EDIT_EVENT_STATUS_STYLES[status] || {
-      bg: 'bg-gray-100',
-      text: 'text-gray-800',
-    };
-    return `ui-badge ${config.bg} ${config.text}`;
-  };
-
-  const getTicketsNeedingAdjustment = () => {
-    if (!formData.date_start || !formData.date_end) return [];
-
-    return ticketList.filter(ticket => {
-      const validation = validateTicketDates(ticket.date_start, ticket.date_end);
-      return !validation.isValid;
-    });
-  };
-
-  const ticketsNeedingAdjustment = getTicketsNeedingAdjustment();
 
   if (loading && !event) {
     return (
@@ -620,7 +515,9 @@ export default function EditEventPage() {
                 {event && (
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-gray-700 font-medium">Status:</span>
-                    <span className={getStatusBadge(event.status)}>
+                    <span
+                      className={`ui-badge ${eventStatusStyle.bg} ${eventStatusStyle.text}`}
+                    >
                       {event.status === 'pending' ? 'Pending' :
                        event.status === 'rejected' ? 'Ditolak' :
                        event.status === 'approved' ? 'Disetujui' :
@@ -664,7 +561,7 @@ export default function EditEventPage() {
                       required
                     >
                       <option value="">Pilih kategori</option>
-                      {Object.keys(CATEGORIES).map((category) => (
+                      {EVENT_PARENT_CATEGORIES.map((category) => (
                         <option key={category} value={category}>
                           {category}
                         </option>
@@ -766,7 +663,12 @@ export default function EditEventPage() {
                         <div className="text-gray-500 mb-2">
                           <Folder className="mx-auto" size={32} />
                         </div>
-                        <span className="text-sm text-gray-600">{getPosterFileName()}</span>
+                        <span className="text-sm text-gray-600">
+                          {getFileDisplayName(posterFile, {
+                            currentFile: currentPoster,
+                            currentLabel: "Poster saat ini",
+                          })}
+                        </span>
                         <p className="text-xs text-gray-400 mt-1">Klik untuk mengganti poster</p>
                       </label>
                     </div>
@@ -796,7 +698,12 @@ export default function EditEventPage() {
                         <div className="text-gray-500 mb-2">
                           <Folder className="mx-auto" size={32} />
                         </div>
-                        <span className="text-sm text-gray-600">{getBannerFileName()}</span>
+                        <span className="text-sm text-gray-600">
+                          {getFileDisplayName(bannerFile, {
+                            currentFile: currentBanner,
+                            currentLabel: "Banner saat ini",
+                          })}
+                        </span>
                         <p className="text-xs text-gray-400 mt-1">Klik untuk mengganti banner</p>
                       </label>
                     </div>
@@ -915,7 +822,10 @@ export default function EditEventPage() {
                     </div>
                   ) : (
                     ticketList.map((t) => {
-                      const needsAdjustment = ticketsNeedingAdjustment.some(ticket => ticket.id === t.id);
+                      const needsAdjustment = hasItemByKey(
+                        ticketsNeedingAdjustment,
+                        t.id,
+                      );
 
                       return (
                         <Motion.div
@@ -932,7 +842,7 @@ export default function EditEventPage() {
                               <div className="flex items-center gap-3 mb-2">
                                 <h3 className="font-semibold text-lg text-gray-900">{t.name}</h3>
                                 <span className="ui-badge ui-badge-info px-2 py-1">
-                                  Rp {parseFloat(t.price).toLocaleString("id-ID")}
+                                  {formatCurrency(Number(t.price))}
                                 </span>
                                 {needsAdjustment && (
                                   <span className="ui-badge ui-badge-warning px-2 py-1">

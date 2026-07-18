@@ -2,6 +2,11 @@ import { motion as Motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import Button from "./Button";
+import {
+  calculatePercentage,
+  clamp,
+  NOTIFICATION_TYPE_CONFIG,
+} from "../../utils";
 
 export default function NotificationModal({
   isOpen,
@@ -13,6 +18,8 @@ export default function NotificationModal({
 }) {
   const [progress, setProgress] = useState(100);
   const [startTime, setStartTime] = useState(null);
+  const typeConfig =
+    NOTIFICATION_TYPE_CONFIG[type] || NOTIFICATION_TYPE_CONFIG.info;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -27,7 +34,11 @@ export default function NotificationModal({
     const interval = setInterval(() => {
       const now = Date.now();
       const elapsed = now - startTime;
-      const newProgress = Math.max(0, 100 - (elapsed / duration) * 100);
+      const newProgress = clamp(
+        100 - calculatePercentage(elapsed, duration),
+        0,
+        100,
+      );
       setProgress(newProgress);
     }, 50);
 
@@ -36,84 +47,6 @@ export default function NotificationModal({
       clearInterval(interval);
     };
   }, [isOpen, duration, onClose, startTime]);
-
-  const getProgressBarColor = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-success-300';
-      case 'warning':
-        return 'bg-warning-300';
-      case 'error':
-        return 'bg-danger-300';
-      case 'info':
-      default:
-        return 'bg-brand-300';
-    }
-  };
-
-  const getBackgroundColor = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-success-600';
-      case 'warning':
-        return 'bg-warning-600';
-      case 'error':
-        return 'bg-danger-600';
-      case 'info':
-      default:
-        return 'bg-brand-600';
-    }
-  };
-
-  const getIcon = () => {
-    switch (type) {
-      case 'success':
-        return (
-          <Motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 10 }}
-            className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
-          >
-            <span className="text-white text-xs">✓</span>
-          </Motion.div>
-        );
-      case 'warning':
-        return (
-          <Motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 10 }}
-            className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
-          >
-            <span className="text-white text-xs">⚠</span>
-          </Motion.div>
-        );
-      case 'error':
-        return (
-          <Motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 10 }}
-            className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
-          >
-            <span className="text-white text-xs">✕</span>
-          </Motion.div>
-        );
-      case 'info':
-      default:
-        return (
-          <Motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 10 }}
-            className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
-          >
-            <span className="text-white text-xs">i</span>
-          </Motion.div>
-        );
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -130,9 +63,18 @@ export default function NotificationModal({
           }}
           className="fixed top-20 right-4 left-4 z-70 sm:left-auto"
         >
-          <div className={`${getBackgroundColor()} ml-auto w-full max-w-sm overflow-hidden rounded-lg border border-white/10 text-white shadow-lg`}>
+          <div className={`${typeConfig.backgroundClass} ml-auto w-full max-w-sm overflow-hidden rounded-lg border border-white/10 text-white shadow-lg`}>
             <div className="px-4 py-3 flex items-center space-x-3">
-              {getIcon()}
+              <Motion.div
+                initial={typeConfig.iconAnimation?.initial || { scale: 0 }}
+                animate={typeConfig.iconAnimation?.animate || { scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
+              >
+                <span className="text-white text-xs">
+                  {typeConfig.symbol}
+                </span>
+              </Motion.div>
               <div className="flex-1">
                 <Motion.p
                   initial={{ opacity: 0, y: 5 }}
@@ -169,7 +111,7 @@ export default function NotificationModal({
                 initial={{ width: "100%" }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.05 }}
-                className={`h-full ${getProgressBarColor()} shadow-sm transition-all duration-50`}
+                className={`h-full ${typeConfig.progressClass} shadow-sm transition-all duration-50`}
               />
             </div>
           </div>

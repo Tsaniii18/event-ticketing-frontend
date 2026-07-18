@@ -1,6 +1,7 @@
 import { Eye, Minus, Plus, ShoppingCart } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 import Button from "../common/Button";
+import { getSelectedTickets } from "../../utils";
 
 export function TicketItem({
   ticket,
@@ -156,9 +157,7 @@ export function CartSummary({
       </h3>
 
       <div className="space-y-2 sm:space-y-3 mb-4">
-        {tickets
-          .filter((ticket) => ticket.qty > 0)
-          .map((ticket) => (
+        {getSelectedTickets(tickets).map((ticket) => (
             <div
               key={ticket.ticket_category_id}
               className="flex justify-between text-xs sm:text-sm bg-white rounded-lg p-2.5 sm:p-3 border border-gray-200"

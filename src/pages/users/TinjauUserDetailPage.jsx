@@ -5,16 +5,17 @@ import { userAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
 import {
+  getOrganizerStatusConfig,
   PAGE_CONTAINER_VARIANTS as containerVariants,
   PAGE_ITEM_VARIANTS as itemVariants,
 } from "../../utils";
 import { motion as Motion } from "framer-motion";
 import {
   User, Mail, Building, MapPin, FileText,
-  Shield, ArrowLeft, CheckCircle, XCircle, Clock
+  Shield, ArrowLeft, CheckCircle, XCircle
 } from "lucide-react";
 import Button from "../../components/common/Button";
-import { ROUTES } from "../../utils/routeConstants";
+import { ROUTES } from "../../utils/constants/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
 
@@ -81,19 +82,6 @@ export default function TinjauUserDetailPage() {
     }
   };
 
-  const getStatusDisplay = (status) => {
-    switch (status) {
-      case "pending":
-        return { text: "Menunggu Verifikasi", color: "ui-badge-warning", icon: Clock };
-      case "approved":
-        return { text: "Terverifikasi", color: "ui-badge-success", icon: CheckCircle };
-      case "rejected":
-        return { text: "Ditolak", color: "ui-badge-danger", icon: XCircle };
-      default:
-        return { text: status, color: "bg-gray-100 text-gray-800 border-gray-200", icon: Shield };
-    }
-  };
-
   if (loading) {
     return (
       <div>
@@ -108,7 +96,9 @@ export default function TinjauUserDetailPage() {
     );
   }
 
-  const statusInfo = user ? getStatusDisplay(user.register_status) : null;
+  const statusInfo = user
+    ? getOrganizerStatusConfig(user.register_status)
+    : null;
   const StatusIcon = statusInfo?.icon;
 
   return (
