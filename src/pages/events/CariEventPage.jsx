@@ -4,12 +4,13 @@ import Navbar from "../../components/layout/Navbar";
 import { eventAPI } from "../../services";
 import useSessionUser from "../../hooks/useSessionUser";
 import {
+  CATEGORIES,
   EVENTS_PER_PAGE as ITEMS_PER_PAGE,
   formatCompactNumber as formatNumber,
   formatRupiah,
   formatShortDateRange as formatDate,
-  getApiCategoryColor as getCategoryColor,
-  getApiParentCategory as getParentCategory,
+  getCategoryColor,
+  getParentCategory,
   getEventStatusLabel as getStatusLabel,
   getEventTimeLabel as getTimeLabel,
   getLowestTicketPrice as getLowestPrice,
@@ -28,7 +29,6 @@ export default function CariEvent() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [events, setEvents] = useState([]);
-  const [eventCategories, setEventCategories] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const {
     isLoading: loading,
@@ -77,16 +77,10 @@ export default function CariEvent() {
     const fetchData = async () => {
       try {
         startLoading();
-        const [eventsResponse, categoriesResponse] = await Promise.all([
-          eventAPI.getApprovedEvents(),
-          eventAPI.getEventCategories()
-        ]);
-
-        let eventsData = eventsResponse.data || [];
-        const categoriesData = categoriesResponse.data.event_category || [];
+        const response = await eventAPI.getApprovedEvents();
+        const eventsData = response.data || [];
 
         setEvents(eventsData);
-        setEventCategories(categoriesData);
         setFilteredEvents(eventsData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -124,7 +118,7 @@ export default function CariEvent() {
 
     if (filters.category) {
       result = result.filter(event => {
-        const eventParent = getParentCategory(event.category, eventCategories);
+        const eventParent = getParentCategory(event.category);
         return eventParent === filters.category;
       });
     }
@@ -162,7 +156,7 @@ export default function CariEvent() {
 
     setFilteredEvents(result);
     setCurrentPage(1);
-  }, [filters, events, sortBy, eventCategories, statusFilter]);
+  }, [filters, events, sortBy, statusFilter]);
 
   const handleLikeEvent = async (eventId, e) => {
     e.stopPropagation();
@@ -478,9 +472,9 @@ export default function CariEvent() {
                           className="ui-select px-3 py-2 text-sm sm:px-4 sm:py-2.5"
                         >
                           <option value="">Semua Kategori</option>
-                          {eventCategories.map((cat) => (
-                            <option key={cat.event_category_id} value={cat.event_category_name}>
-                              {cat.event_category_name}
+                          {Object.keys(CATEGORIES).map((category) => (
+                            <option key={category} value={category}>
+                              {category}
                             </option>
                           ))}
                         </select>
@@ -544,7 +538,6 @@ export default function CariEvent() {
                     >
                       <EventCard
                         event={event}
-                        eventCategories={eventCategories}
                         onClick={() => handleCardClick(event.event_id)}
                         formatRupiah={formatRupiah}
                         formatDate={formatDate}
@@ -630,12 +623,12 @@ export default function CariEvent() {
 }
 
 function EventCard({
-  event, eventCategories, onClick, formatRupiah, formatDate, formatNumber, getLowestPrice,
+  event, onClick, formatRupiah, formatDate, formatNumber, getLowestPrice,
   getCategoryColor, getParentCategory, getStatusLabel, getTimeLabel, isLiked, onLike,
   sortBy, canLike, statusFilter
 }) {
   const minPrice = getLowestPrice(event.ticket_categories);
-  const parentCategory = getParentCategory(event.category, eventCategories);
+  const parentCategory = getParentCategory(event.category);
   const isEnded = event.status === "ended";
   const statusLabel = getStatusLabel(event.status);
   const timeLabel = getTimeLabel(event.date_start, event.status);
@@ -661,7 +654,7 @@ function EventCard({
         />
 
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
-          <span className={`${getCategoryColor(event.category, eventCategories, event.status)} text-white text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium`}>
+          <span className={`${getCategoryColor(event.category, event.status)} text-white text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium`}>
             {isEnded ? "Berakhir" : parentCategory}
           </span>
         </div>

@@ -16,29 +16,9 @@ export const getParentCategory = (category) => {
   return "Lainnya";
 };
 
-export const getApiParentCategory = (category, eventCategories) => {
-  if (!category) return "Lainnya";
-
-  const parentCategory = eventCategories.find(
-    (item) =>
-      item.event_category_name === category ||
-      item.child_event_category?.some(
-        (child) => child.child_event_category_name === category,
-      ),
-  );
-
-  return parentCategory?.event_category_name || "Lainnya";
-};
-
 export const getCategoryColor = (category, status) => {
   if (status === "ended") return "bg-gray-400";
   return CATEGORY_COLORS[getParentCategory(category)] || CATEGORY_COLORS.Lainnya;
-};
-
-export const getApiCategoryColor = (category, eventCategories, status) => {
-  if (status === "ended") return "bg-gray-400";
-  const parentCategory = getApiParentCategory(category, eventCategories);
-  return CATEGORY_COLORS[parentCategory] || CATEGORY_COLORS.Lainnya;
 };
 
 export const getCategoryData = (category) => {

@@ -13,8 +13,6 @@ export {
   YOGYAKARTA_DISTRICTS,
 } from "./eventConstants";
 export {
-  getApiCategoryColor,
-  getApiParentCategory,
   getCategoryColor,
   getCategoryData,
   getDaysUntilEvent,

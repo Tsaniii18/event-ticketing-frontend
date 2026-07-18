@@ -5,6 +5,7 @@ import { eventAPI } from "../../services";
 import NotificationModal from "../../components/common/NotificationModal";
 import useNotification from "../../hooks/useNotification";
 import {
+  CATEGORIES,
   CATEGORY_COLORS,
   DAY_NAMES as dayNames,
   DAY_NAMES_FULL as dayNamesFull,
@@ -12,8 +13,8 @@ import {
   formatOptionalRupiah as formatRupiah,
   formatOptionalShortDateRange as formatDateRange,
   formatShortDate as formatDate,
-  getApiCategoryColor,
-  getApiParentCategory,
+  getCategoryColor,
+  getParentCategory,
   getEventMinimumPrice as getMinPrice,
   MONTH_NAMES as monthNames,
   YOGYAKARTA_DISTRICTS as DISTRICTS,
@@ -47,7 +48,6 @@ export default function CalendarEventPage() {
     useNotification();
 
   const [events, setEvents] = useState([]);
-  const [eventCategories, setEventCategories] = useState([]);
   const {
     isLoading: loading,
     startLoading,
@@ -101,40 +101,22 @@ export default function CalendarEventPage() {
     fetchLikedEvents();
   }, [isLoggedIn, userRole]);
 
-  const fetchEventCategories = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
-      const response = await eventAPI.getEventCategories();
-      const categoriesData = response.data.event_category || [];
-      setEventCategories(categoriesData);
+      startLoading();
+      const response = await eventAPI.getApprovedEvents();
+      setEvents(response.data || []);
     } catch (error) {
-      console.error("Error fetching event categories:", error);
+      console.error("Error fetching data:", error);
+      showNotification("Gagal memuat data event", "Error", "error");
+    } finally {
+      stopLoading();
     }
-  };
+  }, [showNotification, startLoading, stopLoading]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        startLoading();
-        const [eventsResponse, categoriesResponse] = await Promise.all([
-          eventAPI.getApprovedEvents(),
-          eventAPI.getEventCategories()
-        ]);
-
-        let eventsData = eventsResponse.data || [];
-        const categoriesData = categoriesResponse.data.event_category || [];
-
-        setEvents(eventsData);
-        setEventCategories(categoriesData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        showNotification("Gagal memuat data event", "Error", "error");
-      } finally {
-        stopLoading();
-      }
-    };
-
-    fetchData();
-  }, [showNotification, startLoading, stopLoading]);
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleLikeEvent = async (eventId, e) => {
     e.stopPropagation();
@@ -181,17 +163,6 @@ export default function CalendarEventPage() {
     }
   };
 
-  const getParentCategory = useCallback(
-    (category) => getApiParentCategory(category, eventCategories),
-    [eventCategories],
-  );
-
-  const getCategoryColor = useCallback(
-    (category, status) =>
-      getApiCategoryColor(category, eventCategories, status),
-    [eventCategories],
-  );
-
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
       const matchesSearch =
@@ -212,7 +183,7 @@ export default function CalendarEventPage() {
 
       return matchesSearch && matchesCategory && matchesDistrict && matchesStatus;
     });
-  }, [events, searchTerm, categoryFilter, districtFilter, getParentCategory, statusFilter]);
+  }, [events, searchTerm, categoryFilter, districtFilter, statusFilter]);
 
   const getEventsForDate = (date) => {
     if (!date) return [];
@@ -343,9 +314,7 @@ export default function CalendarEventPage() {
 
   const hasActiveFilters = searchTerm || categoryFilter || districtFilter || statusFilter;
 
-  const parentCategoriesForLegend = useMemo(() => {
-    return eventCategories.map(category => category.event_category_name);
-  }, [eventCategories]);
+  const parentCategoriesForLegend = Object.keys(CATEGORIES);
 
   return (
     <div className="ui-page">
@@ -441,10 +410,7 @@ export default function CalendarEventPage() {
                   )}
 
                   <Button
-                    onClick={() => {
-                      eventAPI.getApprovedEvents().then((response) => setEvents(response.data || []));
-                      fetchEventCategories();
-                    }}
+                    onClick={fetchEvents}
                     loading={loading}
                     loadingLabel="Memuat..."
                     variant="primary"
@@ -511,9 +477,9 @@ export default function CalendarEventPage() {
                           className="ui-select px-3 py-2.5 text-sm sm:px-4 sm:py-3 sm:text-base"
                         >
                           <option value="">Semua Kategori</option>
-                          {eventCategories.map((category) => (
-                            <option key={category.event_category_id} value={category.event_category_name}>
-                              {category.event_category_name}
+                          {parentCategoriesForLegend.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
                             </option>
                           ))}
                         </select>

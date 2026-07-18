@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { Calendar, Folder, Plus, Pencil, Trash2, Eye, Save, ArrowLeft } from "lucide-react";
@@ -14,6 +14,7 @@ import useNotification from "../../hooks/useNotification";
 import useImagePreview from "../../hooks/useImagePreview";
 import { motion as Motion } from "framer-motion";
 import {
+  CATEGORIES,
   EDIT_EVENT_VENUES as YOGYAKARTA_VENUES,
   EDIT_EVENT_STATUS_STYLES,
   EXTENDED_DISTRICTS as DISTRICTS,
@@ -26,7 +27,6 @@ import Button from "../../components/common/Button";
 import { ROUTES, routeTo } from "../../utils/routeConstants";
 import useLoading from "../../hooks/useLoading";
 import LoadingState from "../../components/common/LoadingState";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function EditEventPage() {
   const { eventId } = useParams();
@@ -57,12 +57,6 @@ export default function EditEventPage() {
     date_end: ""
   });
 
-  const [categories, setCategories] = useState([]);
-  const {
-    isLoading: loadingCategories,
-    startLoading: startLoadingCategories,
-    stopLoading: stopLoadingCategories,
-  } = useLoading(true);
   const [posterFile, setPosterFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [currentPoster, setCurrentPoster] = useState("");
@@ -78,24 +72,6 @@ export default function EditEventPage() {
   const [editingTicket, setEditingTicket] = useState(null);
   const [isCustomVenue, setIsCustomVenue] = useState(false);
   const [minDate, setMinDate] = useState("");
-
-  const fetchEventCategories = useCallback(async () => {
-    try {
-      startLoadingCategories();
-      const response = await eventAPI.getEventCategories();
-      const categoriesData = response.data.event_category || [];
-      setCategories(categoriesData);
-    } catch (error) {
-      console.error("Error fetching event categories:", error);
-      showNotification("Gagal memuat kategori event", "Error", "error");
-    } finally {
-      stopLoadingCategories();
-    }
-  }, [showNotification, startLoadingCategories, stopLoadingCategories]);
-
-  useEffect(() => {
-    fetchEventCategories();
-  }, [fetchEventCategories]);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -545,12 +521,7 @@ export default function EditEventPage() {
     return bannerFile ? bannerFile.name : (currentBanner ? "Banner saat ini" : "Pilih file");
   };
 
-  const getChildCategories = () => {
-    const selectedCategory = categories.find(cat =>
-      cat.event_category_name === formData.category
-    );
-    return selectedCategory?.child_event_category || [];
-  };
+  const childCategories = CATEGORIES[formData.category] || [];
 
   const getStatusBadge = (status) => {
     const config = EDIT_EVENT_STATUS_STYLES[status] || {
@@ -693,25 +664,15 @@ export default function EditEventPage() {
                       required
                     >
                       <option value="">Pilih kategori</option>
-                      {loadingCategories ? (
-                        <option disabled>Memuat kategori...</option>
-                      ) : (
-                        categories.map((cat) => (
-                          <option key={cat.event_category_id} value={cat.event_category_name}>
-                            {cat.event_category_name}
-                          </option>
-                        ))
-                      )}
+                      {Object.keys(CATEGORIES).map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
                     </select>
-                    {loadingCategories && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <LoadingSpinner size="xs" tone="neutral" />
-                        <span>Sedang memuat kategori...</span>
-                      </div>
-                    )}
                   </div>
 
-                  {formData.category && getChildCategories().length > 0 && (
+                  {formData.category && childCategories.length > 0 && (
                     <div className="space-y-2">
                       <label className="ui-label">Sub-Kategori Event</label>
                       <select
@@ -721,9 +682,9 @@ export default function EditEventPage() {
                         onChange={handleInputChange}
                       >
                         <option value="">Pilih sub-kategori (opsional)</option>
-                        {getChildCategories().map((child) => (
-                          <option key={child.child_event_category_id} value={child.child_event_category_name}>
-                            {child.child_event_category_name}
+                        {childCategories.map((childCategory) => (
+                          <option key={childCategory} value={childCategory}>
+                            {childCategory}
                           </option>
                         ))}
                       </select>

@@ -13,5 +13,4 @@ export const eventAPI = {
   downloadEventReport: (eventId) => api.get(`/api/events/${eventId}/report/download`, { responseType: 'blob' }),
   likeEvent: (eventId) => api.post(`/api/events/${eventId}/like`),
   getMyLikedEvents: () => api.get('/api/events/like'),
-  getEventCategories: () => api.get('/api/events/category'),
 };

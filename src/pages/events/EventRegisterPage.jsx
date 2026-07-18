@@ -7,7 +7,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { eventAPI } from "../../services";
 import TicketCategoryModal from "../../components/events/TicketCategoryModal";
@@ -21,6 +21,7 @@ import useNotification from "../../hooks/useNotification";
 import useImagePreview from "../../hooks/useImagePreview";
 import { motion as Motion } from "framer-motion";
 import {
+  CATEGORIES,
   formatDateForDisplay,
   getMinimumEventDate as getMinDate,
   MAX_IMAGE_SIZE,
@@ -32,7 +33,6 @@ import {
 import Button from "../../components/common/Button";
 import { ROUTES } from "../../utils/routeConstants";
 import useLoading from "../../hooks/useLoading";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 export default function EventRegister() {
   const navigate = useNavigate();
@@ -58,12 +58,6 @@ export default function EventRegister() {
     rules: "",
   });
 
-  const [categories, setCategories] = useState([]);
-  const {
-    isLoading: loadingCategories,
-    startLoading: startLoadingCategories,
-    stopLoading: stopLoadingCategories,
-  } = useLoading(true);
   const [posterFile, setPosterFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [ticketList, setTicketList] = useState([]);
@@ -77,24 +71,6 @@ export default function EventRegister() {
   const [isCustomVenue, setIsCustomVenue] = useState(false);
 
   const minDate = getMinDate();
-
-  const fetchEventCategories = useCallback(async () => {
-    try {
-      startLoadingCategories();
-      const response = await eventAPI.getEventCategories();
-      const categoriesData = response.data.event_category || [];
-      setCategories(categoriesData);
-    } catch (error) {
-      console.error("Error fetching event categories:", error);
-      showNotification("Gagal memuat kategori event", "Error", "error");
-    } finally {
-      stopLoadingCategories();
-    }
-  }, [showNotification, startLoadingCategories, stopLoadingCategories]);
-
-  useEffect(() => {
-    fetchEventCategories();
-  }, [fetchEventCategories]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -389,12 +365,7 @@ const handleCloseModal = () => {
   const getPosterFileName = () => (posterFile ? posterFile.name : "Pilih file");
   const getBannerFileName = () => (bannerFile ? bannerFile.name : "Pilih file");
 
-  const getChildCategories = () => {
-    const selectedCategory = categories.find(
-      (cat) => cat.event_category_name === formData.category
-    );
-    return selectedCategory?.child_event_category || [];
-  };
+  const childCategories = CATEGORIES[formData.category] || [];
 
   return (
     <div>
@@ -490,28 +461,14 @@ const handleCloseModal = () => {
                       value={formData.category}
                       onChange={handleInputChange}
                       required
-                      disabled={loadingCategories}
                     >
-                      <option value="">
-                        {loadingCategories
-                          ? "Memuat kategori..."
-                          : "Pilih kategori event"}
-                      </option>
-                      {categories.map((category) => (
-                        <option
-                          key={category.event_category_id}
-                          value={category.event_category_name}
-                        >
-                          {category.event_category_name}
+                      <option value="">Pilih kategori event</option>
+                      {Object.keys(CATEGORIES).map((category) => (
+                        <option key={category} value={category}>
+                          {category}
                         </option>
                       ))}
                     </select>
-                    {loadingCategories && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <LoadingSpinner size="xs" tone="neutral" />
-                        <span>Sedang memuat kategori...</span>
-                      </div>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -524,23 +481,20 @@ const handleCloseModal = () => {
                       value={formData.child_category}
                       onChange={handleInputChange}
                       required
-                      disabled={!formData.category || loadingCategories}
+                      disabled={!formData.category}
                     >
                       <option value="">
                         {!formData.category
                           ? "Pilih kategori terlebih dahulu"
                           : "Pilih sub kategori"}
                       </option>
-                      {getChildCategories().map((childCategory) => (
-                        <option
-                          key={childCategory.child_event_category_id}
-                          value={childCategory.child_event_category_name}
-                        >
-                          {childCategory.child_event_category_name}
+                      {childCategories.map((childCategory) => (
+                        <option key={childCategory} value={childCategory}>
+                          {childCategory}
                         </option>
                       ))}
                     </select>
-                    {formData.category && getChildCategories().length === 0 && (
+                    {formData.category && childCategories.length === 0 && (
                       <p className="text-xs text-yellow-600">
                         Tidak ada subkategori untuk kategori ini
                       </p>
